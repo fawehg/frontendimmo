@@ -1,0 +1,139 @@
+/* Footer */
+.footer {
+  background-color: #f8f8f8; /* Fond clair */
+  color: #333; /* Texte sombre */
+  padding: 40px 20px 20px 20px;
+  font-family: 'Arial', sans-serif; /* Police simple et moderne */
+  border-top: 1px solid #e0e0e0; /* Ligne de séparation */
+  z-index: 1000;
+  font-size: 16px;
+  width: 100%; /* Assure que le footer occupe toute la largeur */
+  margin: 0; /* Supprime les marges par défaut */
+  box-sizing: border-box; /* Inclut les paddings dans la largeur */
+  min-width: 200vh; /* S'assurer que l'image couvre toujours toute la hauteur, même après un zoom */
+
+}
+
+
+.footer-top {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: row; /* Alignement horizontal */
+  align-items: flex-start; /* Alignement en haut */
+  text-align: left; /* Texte aligné à gauche */
+}
+
+/* Section logo et description */
+.footer-logo-section {
+  flex: 1; /* Prend 1 partie de l'espace disponible */
+  max-width: 300px; /* Largeur maximale pour le logo */
+
+  margin-right: 40px; /* Espace entre le logo et les autres sections */
+}
+
+.footer-logo-img {
+  width: 260px; /* Ajustez la taille du logo */
+  height: auto; /* Set a fixed height */
+  margin-bottom: 10px; /* Espace sous le logo */
+}
+
+.footer-logo-section h1 {
+  font-size: 1.5rem; /* Taille du titre */
+  font-weight: bold;
+  color: #2c3e50; /* Couleur sombre pour le titre */
+  margin: 0;
+}
+
+.footer-logo-section p {
+  font-size: 1rem; /* Taille du texte */
+  color: #555; /* Couleur grise pour la description */
+  line-height: 1.5; /* Espacement des lignes */
+}
+
+/* Section contenu (Nos Biens, Liens utiles, Contact) */
+.footer-content {
+  flex: 2; /* Prend 2 parties de l'espace disponible */
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.footer-section {
+  flex: 1;
+  min-width: 200px;
+
+  text-align: left;
+}
+
+.footer-section h3 {
+  font-size: 1.2rem;
+  color:#090536;
+  margin-bottom: 15px;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section ul li {
+  margin-bottom: 10px;
+  color: #555; /* Texte gris pour les éléments de liste */
+}
+
+.footer-section ul li a {
+  color: #555;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.footer-section ul li a:hover {
+  color: #f39c12; /* Couleur orange au survol */
+}
+
+.footer-section p {
+  margin: 5px 0;
+  color: #555; /* Texte gris pour les paragraphes */
+}
+
+/* Footer Bottom (Copyright et Crédits) */
+.footer-bottom {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0; /* Ligne de séparation */
+  width: 100%; /* Assure que le footer-bottom occupe toute la largeur */
+  box-sizing: border-box; /* Inclut les paddings dans la largeur */
+}
+
+.footer-bottom p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: #777; /* Texte gris clair */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .footer-top {
+    flex-direction: column; /* Empile les éléments sur les petits écrans */
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-logo-section {
+    margin-right: 0; /* Supprime l'espace à droite */
+    margin-bottom: 20px; /* Ajoute un espace sous le logo */
+  }
+
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-section {
+    margin-bottom: 20px;
+  }
+}

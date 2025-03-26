@@ -1,0 +1,115 @@
+/* Navbar */
+.nav {
+  display: flex;
+  justify-content: space-between; /* Espace entre le logo, les liens et les boutons */
+  align-items: center;
+  height: 60px; /* Hauteur fixe */
+  padding: 0 15px; /* Ajustez le padding si nécessaire */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(3px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  color: white;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
+}
+
+/* Logo container */
+.logo-container {
+  display: flex;
+  justify-content: flex-start; /* Alignement à gauche */
+  align-items: center;
+  padding: 0; /* Supprime le padding */
+  background-color: transparent; /* Fond transparent */
+  margin-left: 0; /* Supprime la marge à gauche */
+}
+
+/* Logo */
+.logo {
+  width: 150px; /* Taille du logo */
+  height: 65px; /* Maintient le ratio */
+  transition: transform 0.3s ease, opacity 0.3s ease; /* Animation fluide */
+  margin-left: 100px; /* Espace à droite */
+}
+
+.logo:hover {
+  transform: scale(1.1); /* Agrandit légèrement le logo */
+  opacity: 0.9; /* Légère transparence */
+}
+
+/* Nav links */
+.nav-links {
+  display: flex;
+  justify-content: center; /* Centre les liens */
+  align-items: center;
+  gap: 50px; /* Espace entre les liens */
+  flex: 1; /* Prend tout l'espace disponible */
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: white;
+  transition: color 0.3s ease, transform 0.3s ease;
+  font-size: 18px;
+  padding: 8px 15px;
+}
+
+.nav-links a:hover {
+  color: #0fb4f0;
+  transform: scale(1.05);
+}
+
+/* Nav buttons */
+.nav-buttons {
+  display: flex;
+  gap: 10px; /* Espace entre les boutons */
+  margin-right: 20px; /* Espace à droite */
+}
+
+/* Bouton de base */
+.nav-button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+/* Bouton "Publier une annonce" */
+.publish-button {
+  background-color: #0fb4f0; /* Couleur bleue */
+  color: white;
+}
+
+.publish-button:hover {
+  background-color: #0d9bd6; /* Couleur bleue plus foncée au survol */
+  transform: scale(1.05);
+}
+
+/* Bouton "Se connecter" */
+.login-button {
+  background-color: #2c3e50; /* Couleur sombre */
+  color: white;
+}
+
+.login-button:hover {
+  background-color: #1a252f; /* Couleur plus foncée au survol */
+  transform: scale(1.05);
+}
+
+
+
+/* Fixed blue background */
+.fixed-blue {
+  background-color: rgb(12, 128, 151) !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}

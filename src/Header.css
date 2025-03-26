@@ -1,0 +1,179 @@
+/* Navbar */
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80px; /* Ajuste la hauteur pour plus d'équilibre */
+  padding: 0 40px; /* Ajoute un peu d'espace autour */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  font-size: 18px;
+  color: white;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Logo */
+.logo-container {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+}
+
+.logo {
+  width: 160px; /* Ajuste la taille du logo */
+  height: auto;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+/* Icône à côté du logo */
+.logo-container .icon {
+  font-size: 30px; /* Taille de l'icône */
+  margin-left: 10px; /* Espace entre le logo et l'icône */
+  color: white;
+}
+
+/* Nav links */
+/* Nav links */
+.nav-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px; /* Réduisez l'espacement pour rapprocher les éléments */
+  flex-grow: 1; /* Permet un alignement fluide */
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: white;
+  font-size: 18px;
+  font-weight: 500;
+  transition: color 0.3s ease, transform 0.2s ease;
+  padding: 10px 15px;
+  white-space: nowrap; /* Empêche le texte de passer à la ligne */
+}
+
+.nav-links a:hover {
+  color: #0fb4f0;
+  transform: scale(1.05);
+}
+/* Bouton "Publier une annonce" */
+.publish-button {
+  background-color: #0fb4f0;
+  color: white;
+}
+
+.publish-button:hover {
+  background-color: #0d9bd6;
+  transform: scale(1.05);
+}
+
+/* Bouton "Se connecter" */
+.login-button {
+  background-color: #2c3e50;
+  color: white;
+}
+
+.login-button:hover {
+  background-color: #1a252f;
+  transform: scale(1.05);
+}
+
+
+
+/* Scrolled navbar */
+.scrolled {
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(15px);
+}
+
+/* Fixed background */
+.fixed-blue {
+  background-color: #2f94bf;
+}
+.button-icon {
+  margin-right: 8px; /* Espace entre l'icône et le texte */
+  font-size: 18px;
+  vertical-align: middle;
+}
+/* Conteneur du dropdown */
+/* Conteneur du dropdown */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Lien du dropdown */
+.dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  color: white; /* Texte blanc par défaut */
+  font-weight: bold;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s; /* Animation fluide */
+}
+
+/* Style au survol du lien "Bien Immobilier" */
+.dropdown-link:hover {
+  background-color: white; /* Fond blanc au survol */
+  color: black; /* Texte noir au survol */
+}
+
+/* Menu déroulant */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color:#090536;
+  border-radius: 5px;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+}
+
+/* Liens dans le menu déroulant */
+.dropdown-menu a {
+  padding: 10px;
+  color: white; /* Texte blanc */
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s; /* Animation fluide */
+}
+
+/* Style au survol des liens du menu déroulant */
+.dropdown-menu a:hover {
+  background-color: #0689bd; /* Fond gris foncé au survol */
+}
+/* Nav buttons */
+.nav-buttons {
+  display: flex;
+  gap: 15px;
+  align-items: center; /* Aligner les boutons verticalement */
+}
+
+
+
+
+
+
+/* Icônes dans les boutons */
+.button-icon,
+.button-icon-publier {
+  margin-right: 8px; /* Espace entre l'icône et le texte */
+  font-size: 18px;
+  vertical-align: middle;
+}

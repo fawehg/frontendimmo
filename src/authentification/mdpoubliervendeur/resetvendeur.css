@@ -1,0 +1,127 @@
+/* Conteneur principal */
+.reset-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f8f8f8;
+  padding: 90px; /* Augmenté de 20px à 40px */
+}
+
+/* Conteneur pour l'image et le formulaire */
+.reset-content {
+  display: flex;
+  align-items: stretch; /* Changé de 'center' à 'stretch' pour égaliser les hauteurs */
+  background-color: white;
+  border-radius: 15px; /* Augmenté de 10px à 15px */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); /* Ombre plus prononcée */
+  overflow: hidden;
+  max-width: 1100px; /* Augmenté de 900px à 1100px */
+  width: 100%;
+  min-height: 650px; /* Hauteur minimale ajoutée */
+}
+
+/* Section de l'image */
+.reset-image-section {
+  flex: 1.2; /* Augmenté de 1 à 1.2 pour donner plus d'espace à l'image */
+  background-color: #090536;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px; /* Augmenté de 40px à 60px */
+}
+
+.reset-image-section img {
+  max-width: 100%;
+  max-height: 500px; /* Hauteur maximale définie */
+  height: auto;
+  border-radius: 10px;
+  object-fit: contain; /* Garantit que l'image conserve ses proportions */
+}
+
+/* Section du formulaire */
+.reset-form-section {
+  flex: 1;
+  padding: 60px 50px; /* Augmenté de 40px à 60px vertical, 50px horizontal */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centre le contenu verticalement */
+}
+
+/* Titre du formulaire */
+.reset-form-section h2 {
+  margin-bottom: 30px; /* Augmenté de 20px à 30px */
+  font-size: 28px; /* Augmenté de 24px à 28px */
+  color: #333;
+  font-weight: 700; /* Plus gras */
+}
+
+/* Étiquettes des champs */
+.reset-form-section label {
+  display: block;
+  margin-bottom: 12px; /* Augmenté de 8px à 12px */
+  font-weight: bold;
+  color: #555;
+  text-align: left;
+  font-size: 15px; /* Taille de police légèrement augmentée */
+}
+
+/* Champs de saisie */
+.reset-input-field {
+  width: 100%;
+  padding: 15px; /* Augmenté de 12px à 15px */
+  margin-bottom: 25px; /* Augmenté de 20px à 25px */
+  border: 1px solid #ddd;
+  border-radius: 6px; /* Léger ajustement */
+  font-size: 16px; /* Augmenté de 14px à 16px */
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+.reset-input-field:focus {
+  border-color: #090536;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(9, 5, 54, 0.2); /* Effet de focus plus visible */
+}
+
+/* Boutons */
+.reset-btn {
+  width: 100%;
+  padding: 15px; /* Augmenté de 12px à 15px */
+  border: none;
+  border-radius: 6px;
+  font-size: 17px; /* Augmenté de 16px à 17px */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600; /* Plus gras */
+  margin-top: 10px;
+}
+
+/* Texte et liens */
+.reset-info-text {
+  font-size: 15px; /* Augmenté de 14px à 15px */
+  margin-top: 25px; /* Augmenté de 20px à 25px */
+}
+
+.reset-link {
+  font-size: 15px; /* Augmenté de 14px à 15px */
+  margin-top: 15px; /* Augmenté de 10px à 15px */
+}
+
+/* Responsive design pour les petits écrans */
+@media (max-width: 768px) {
+  .reset-content {
+      flex-direction: column;
+      max-width: 95%;
+  }
+  
+  .reset-image-section, .reset-form-section {
+      flex: none;
+      width: 100%;
+      padding: 40px 30px;
+  }
+  
+  .reset-image-section img {
+      max-height: 300px;
+  }
+}

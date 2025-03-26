@@ -1,0 +1,167 @@
+/* Style global */
+body {
+  font-family: Arial, sans-serif;
+  background-color: white; /* Set background to white */
+  margin: 0;
+  padding: 0;
+}
+
+/* Conteneur principal */
+.container {
+  display: grid; /* Change to grid layout */
+  grid-template-columns: repeat(2, 1fr); /* 2 columns */
+  grid-template-rows: repeat(2, auto); /* 2 rows */
+  gap: 20px;
+  width: 90%;
+  margin: 20px auto;
+}
+
+/* Style des boîtes (Image, Carte, Info, Formulaire) */
+.box {
+  background: white; /* Set background to white */
+  padding: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Image principale */
+.image-container img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  border: none; /* Supprime la bordure de l'image */
+}
+
+/* Carte Google Maps */
+.map-container iframe {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  max-height: 300px; /* Ensure map doesn't grow too large */
+}
+
+/* Informations du bureau */
+.office-info {
+  border: none; /* Supprime la bordure de la section Informations du bureau */
+}
+
+.office-info h2,
+.contact-form h2 {
+  font-size: 22px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.office-info p {
+  margin: 5px 0;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+}
+
+.office-info p svg {
+  margin-right: 10px;
+  color:#090536;
+}
+
+.office-info a {
+  color:#090536;
+
+  font-weight: bold;
+  text-decoration: none;
+}
+
+/* Téléphone */
+.phone {
+  font-size: 18px;
+  font-weight: bold;
+  color:#090536;
+
+  text-align: center;
+}
+
+/* Réseaux sociaux */
+.social-share {
+  text-align: center;
+}
+
+.social-icons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.social-icons a {
+  background: #e9ecef;
+  padding: 10px;
+  border-radius: 5px;
+  display: inline-block;
+  transition: 0.3s;
+}
+
+.social-icons a:hover {
+  background: #d6d6d6;
+}
+
+/* Formulaire de contact */
+/* Ajuster la taille du formulaire de contact */
+.contact-form {
+  min-width: 95%; /* Augmenter la largeur pour égaler celle de "Informations sur le bureau" */
+  flex-direction: column;
+  box-shadow: none; /* Remove the shadow */
+}
+
+.contact-form form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.contact-form label {
+  font-size: 14px;
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 98%;
+  padding: 10px;
+  margin-top: 5px;
+  border: none; /* Supprime la bordure des champs de formulaire */
+  border-radius: 5px;
+  background-color: #f0f0f0; /* Gris clair */
+  color: #333; /* Texte en gris foncé pour le contraste */
+}
+
+.contact-form button {
+  margin-top: 15px;
+  background-color:#090536;
+  color: white;
+  padding: 12px;
+  border: none; /* Supprime la bordure du bouton */
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.contact-form button:hover {
+  color:#090536;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr; /* Stack the items in one column on smaller screens */
+  }
+
+  .contact-form {
+    width: 100%; /* Full width on smaller screens */
+  }
+}
