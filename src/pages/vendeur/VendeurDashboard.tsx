@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaUpload, FaUser, FaEnvelope, FaLock, FaMapMarkerAlt, 
-  FaHome, FaBuilding, FaCity, FaStore, 
-  FaKey, FaSwimmingPool, FaTree, FaMountain
+  FaHome, FaBuilding, FaCity, FaStore, FaRestroom,
+  FaKey, FaSwimmingPool, FaTree, FaMountain, FaSnowflake,
+  FaParking, FaUsers, FaUtensils, FaShieldAlt,
+  FaNetworkWired, FaWifi
 } from 'react-icons/fa';
 import axios from 'axios';
-import Header from "../../Header"; // Import du composant Header
-import Footer from "../../Footer"; // Import du composant Footer
-
+import Header from "../../Header";
+import Footer from "../../Footer";
 import './VendeurDashboard.css';
 
 interface Ville {
@@ -49,7 +50,6 @@ const VendeurDashboard = () => {
     anneeConstruction: '',
     caracteristiques: [] as string[],
     images: [] as File[],
-    // Champs spécifiques
     meuble: false,
     environnement: '',
     eau: false,
@@ -58,7 +58,17 @@ const VendeurDashboard = () => {
     jardin: false,
     piscine: false,
     etage: '',
-    superficieCouvert: ''
+    superficieCouvert: '',
+    climatise: false,
+    ascenseur: false,
+    parking: false,
+    salleReunion: false,
+    cuisine: false,
+    nbBureaux: '',
+    nbToilettes: '',
+    securite: false,
+    fibreOptique: false,
+    wifi: false
   });
 
   const [villes, setVilles] = useState<Ville[]>([]);
@@ -68,11 +78,16 @@ const VendeurDashboard = () => {
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const iconStyle = {
+    color: '#090536',
+    marginRight: '8px',
+    fontSize: '1.1em'
+  };
+
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
 
-  // Chargement des données initiales
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -110,7 +125,11 @@ const VendeurDashboard = () => {
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       
-      if (name === 'meuble' || name === 'eau' || name === 'electricite' || name === 'jardin' || name === 'piscine') {
+      if (name === 'meuble' || name === 'eau' || name === 'electricite' || 
+          name === 'jardin' || name === 'piscine' || name === 'climatise' ||
+          name === 'ascenseur' || name === 'parking' || name === 'salleReunion' ||
+          name === 'cuisine' || name === 'securite' || name === 'fibreOptique' ||
+          name === 'wifi') {
         setFormData({
           ...formData,
           [name]: checked
@@ -158,17 +177,14 @@ const VendeurDashboard = () => {
     try {
       const formDataToSend = new FormData();
       
-      // Ajout des champs de base
       Object.entries(formData).forEach(([key, value]) => {
         if (key !== 'images' && key !== 'caracteristiques') {
           formDataToSend.append(key, value.toString());
         }
       });
       
-      // Ajout des caractéristiques
       formDataToSend.append('caracteristiques', JSON.stringify(formData.caracteristiques));
       
-      // Ajout des images
       formData.images.forEach((image, index) => {
         formDataToSend.append(`images[${index}]`, image);
       });
@@ -180,7 +196,6 @@ const VendeurDashboard = () => {
         }
       });
       
-      console.log('Propriété ajoutée avec succès', response.data);
       alert('Annonce créée avec succès !');
       navigate('/');
     } catch (error) {
@@ -197,8 +212,8 @@ const VendeurDashboard = () => {
       case 'villa':
         return (
           <>
-            <div className="form-group">
-              <label>Nombre de chambres</label>
+            <div className="property-form__field">
+              <label><FaHome style={iconStyle} /> Nombre de chambres</label>
               <input
                 type="number"
                 name="nbChambres"
@@ -206,8 +221,8 @@ const VendeurDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
-              <label>Nombre de pièces</label>
+            <div className="property-form__field">
+              <label><FaBuilding style={iconStyle} /> Nombre de pièces</label>
               <input
                 type="number"
                 name="nbPieces"
@@ -215,8 +230,8 @@ const VendeurDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
-              <label>Année de construction</label>
+            <div className="property-form__field">
+              <label><FaCity style={iconStyle} /> Année de construction</label>
               <input
                 type="number"
                 name="anneeConstruction"
@@ -224,8 +239,8 @@ const VendeurDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
-              <label>Meublé</label>
+            <div className="property-form__field">
+              <label><FaKey style={iconStyle} /> Meublé</label>
               <input
                 type="checkbox"
                 name="meuble"
@@ -233,9 +248,9 @@ const VendeurDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
-              <label>Environnement</label>
-              <div className="checkbox-group">
+            <div className="property-form__field">
+              <label><FaTree style={iconStyle} /> Environnement</label>
+              <div className="property-form__checkbox-group">
                 {['Zone Commerciale', 'Centre-ville', 'Résidentiel', 'Zone d\'activité'].map(env => (
                   <label key={env}>
                     <input
@@ -250,8 +265,8 @@ const VendeurDashboard = () => {
             </div>
             {formData.typeCategorie === 'villa' && (
               <>
-                <div className="form-group">
-                  <label>Jardin</label>
+                <div className="property-form__field">
+                  <label><FaTree style={iconStyle} /> Jardin</label>
                   <input
                     type="checkbox"
                     name="jardin"
@@ -259,8 +274,8 @@ const VendeurDashboard = () => {
                     onChange={handleChange}
                   />
                 </div>
-                <div className="form-group">
-                  <label>Piscine</label>
+                <div className="property-form__field">
+                  <label><FaSwimmingPool style={iconStyle} /> Piscine</label>
                   <input
                     type="checkbox"
                     name="piscine"
@@ -275,8 +290,8 @@ const VendeurDashboard = () => {
       case 'appartement':
         return (
           <>
-            <div className="form-group">
-              <label>Superficie Couvert (m²)</label>
+            <div className="property-form__field">
+              <label><FaBuilding style={iconStyle} /> Superficie Couvert (m²)</label>
               <input
                 type="number"
                 name="superficieCouvert"
@@ -284,8 +299,8 @@ const VendeurDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
-              <label>Étage</label>
+            <div className="property-form__field">
+              <label><FaBuilding style={iconStyle} /> Étage</label>
               <input
                 type="number"
                 name="etage"
@@ -293,8 +308,8 @@ const VendeurDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-            <div className="form-group">
-              <label>Meublé</label>
+            <div className="property-form__field">
+              <label><FaKey style={iconStyle} /> Meublé</label>
               <input
                 type="checkbox"
                 name="meuble"
@@ -307,9 +322,9 @@ const VendeurDashboard = () => {
       case 'ferme':
         return (
           <>
-            <div className="form-group">
-              <label>Infrastructures</label>
-              <div className="checkbox-group">
+            <div className="property-form__field">
+              <label><FaTree style={iconStyle} /> Infrastructures</label>
+              <div className="property-form__checkbox-group">
                 <label>
                   <input
                     type="checkbox"
@@ -328,9 +343,9 @@ const VendeurDashboard = () => {
                 </label>
               </div>
             </div>
-            <div className="form-group">
-              <label>Vue</label>
-              <div className="checkbox-group">
+            <div className="property-form__field">
+              <label><FaMountain style={iconStyle} /> Vue</label>
+              <div className="property-form__checkbox-group">
                 {['Campagne', 'Colline'].map(vue => (
                   <label key={vue}>
                     <input
@@ -345,12 +360,113 @@ const VendeurDashboard = () => {
             </div>
           </>
         );
+      case 'bureau':
+        return (
+          <>
+            <div className="property-form__field">
+              <label><FaBuilding style={iconStyle} /> Nombre de bureaux</label>
+              <input
+                type="number"
+                name="nbBureaux"
+                value={formData.nbBureaux}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="property-form__field">
+              <label><FaRestroom style={iconStyle} /> Nombre de toilettes</label>
+              <input
+                type="number"
+                name="nbToilettes"
+                value={formData.nbToilettes}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="property-form__field">
+              <label><FaBuilding style={iconStyle} /> Caractéristiques</label>
+              <div className="property-form__checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    name="climatise"
+                    checked={formData.climatise}
+                    onChange={handleChange}
+                  /> <FaSnowflake style={iconStyle} /> Climatisé
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="ascenseur"
+                    checked={formData.ascenseur}
+                    onChange={handleChange}
+                  /> Ascenseur
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="parking"
+                    checked={formData.parking}
+                    onChange={handleChange}
+                  /> <FaParking style={iconStyle} /> Parking
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="salleReunion"
+                    checked={formData.salleReunion}
+                    onChange={handleChange}
+                  /> <FaUsers style={iconStyle} /> Salle de réunion
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="cuisine"
+                    checked={formData.cuisine}
+                    onChange={handleChange}
+                  /> <FaUtensils style={iconStyle} /> Cuisine équipée
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="securite"
+                    checked={formData.securite}
+                    onChange={handleChange}
+                  /> <FaShieldAlt style={iconStyle} /> Sécurité 24/7
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="fibreOptique"
+                    checked={formData.fibreOptique}
+                    onChange={handleChange}
+                  /> <FaNetworkWired style={iconStyle} /> Fibre optique
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="wifi"
+                    checked={formData.wifi}
+                    onChange={handleChange}
+                  /> <FaWifi style={iconStyle} /> Wifi haut débit
+                </label>
+              </div>
+            </div>
+            <div className="property-form__field">
+              <label><FaBuilding style={iconStyle} /> Superficie couverte (m²)</label>
+              <input
+                type="number"
+                name="superficieCouvert"
+                value={formData.superficieCouvert}
+                onChange={handleChange}
+              />
+            </div>
+          </>
+        );
       case 'etage_villa':
         return (
           <>
-            <div className="form-group">
+            <div className="property-form__field">
               <label>Environnement</label>
-              <div className="checkbox-group">
+              <div className="property-form__checkbox-group">
                 {['Centre-ville', 'Zone d\'activité'].map(env => (
                   <label key={env}>
                     <input
@@ -371,18 +487,22 @@ const VendeurDashboard = () => {
   };
 
   return (
-    <div className={`vendeur-dashboard ${darkMode ? 'dark-mode' : ''}`}>
+    <div className={`property-dashboard ${darkMode ? 'property-dashboard--dark' : ''}`}>
       <Header toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
       
-      <div className="dashboard-content">
-        <h1>Ajouter une nouvelle propriété</h1>
+      <div className="property-dashboard__content">
+        <h1 className="property-dashboard__title">
+          <FaKey style={iconStyle} /> Ajouter une nouvelle propriété
+        </h1>
         
         <form onSubmit={handleSubmit} className="property-form">
-          <div className="form-section">
-            <h2>Informations de base</h2>
+          <div className="property-form__section">
+            <h2 className="property-form__section-title">
+              <FaHome style={iconStyle} /> Informations de base
+            </h2>
             
-            <div className="form-group">
-              <label>Type de transaction</label>
+            <div className="property-form__field">
+              <label><FaBuilding style={iconStyle} /> Type de transaction</label>
               <select
                 name="typeTransaction"
                 value={formData.typeTransaction}
@@ -398,8 +518,8 @@ const VendeurDashboard = () => {
               </select>
             </div>
             
-            <div className="form-group">
-              <label>Type de catégorie</label>
+            <div className="property-form__field">
+              <label><FaBuilding style={iconStyle} /> Type de catégorie</label>
               <select
                 name="typeCategorie"
                 value={formData.typeCategorie}
@@ -415,8 +535,8 @@ const VendeurDashboard = () => {
               </select>
             </div>
             
-            <div className="form-group">
-              <label>Ville</label>
+            <div className="property-form__field">
+              <label><FaCity style={iconStyle} /> Ville</label>
               <select
                 name="ville"
                 value={formData.ville}
@@ -433,8 +553,8 @@ const VendeurDashboard = () => {
               </select>
             </div>
             
-            <div className="form-group">
-              <label>Délégation</label>
+            <div className="property-form__field">
+              <label><FaMapMarkerAlt style={iconStyle} /> Délégation</label>
               <select
                 name="delegation"
                 value={formData.delegation}
@@ -449,8 +569,8 @@ const VendeurDashboard = () => {
               </select>
             </div>
             
-            <div className="form-group">
-              <label>Adresse</label>
+            <div className="property-form__field">
+              <label><FaMapMarkerAlt style={iconStyle} /> Adresse</label>
               <input
                 type="text"
                 name="adresse"
@@ -460,8 +580,8 @@ const VendeurDashboard = () => {
               />
             </div>
             
-            <div className="form-group">
-              <label>Titre de l'annonce</label>
+            <div className="property-form__field">
+              <label><FaUser style={iconStyle} /> Titre de l'annonce</label>
               <input
                 type="text"
                 name="titre"
@@ -471,8 +591,8 @@ const VendeurDashboard = () => {
               />
             </div>
             
-            <div className="form-group">
-              <label>Description</label>
+            <div className="property-form__field">
+              <label><FaEnvelope style={iconStyle} /> Description</label>
               <textarea
                 name="description"
                 value={formData.description}
@@ -482,8 +602,8 @@ const VendeurDashboard = () => {
               />
             </div>
             
-            <div className="form-group">
-              <label>Prix (DT)</label>
+            <div className="property-form__field">
+              <label><FaLock style={iconStyle} /> Prix (DT)</label>
               <input
                 type="number"
                 name="prix"
@@ -493,8 +613,8 @@ const VendeurDashboard = () => {
               />
             </div>
             
-            <div className="form-group">
-              <label>Superficie (m²)</label>
+            <div className="property-form__field">
+              <label><FaStore style={iconStyle} /> Superficie (m²)</label>
               <input
                 type="number"
                 name="superficie"
@@ -505,30 +625,35 @@ const VendeurDashboard = () => {
             </div>
           </div>
           
-          <div className="form-section">
-            <h2>Caractéristiques spécifiques</h2>
+          <div className="property-form__section">
+            <h2 className="property-form__section-title">
+              <FaTree style={iconStyle} /> Caractéristiques spécifiques
+            </h2>
             {renderSpecificFields()}
           </div>
           
-          <div className="form-section">
-            <h2>Images</h2>
-            <div className="form-group">
-              <label className="file-upload-label">
-                <FaUpload /> Télécharger des images
+          <div className="property-form__section">
+            <h2 className="property-form__section-title">
+              <FaSwimmingPool style={iconStyle} /> Images
+            </h2>
+            <div className="property-form__field">
+              <label className="property-form__file-upload">
+                <FaUpload style={iconStyle} /> Télécharger des images
                 <input
                   type="file"
                   multiple
                   accept="image/*"
                   onChange={handleImageChange}
-                  className="file-upload-input"
+                  className="property-form__file-input"
                 />
               </label>
-              <div className="image-previews">
+              <div className="property-form__image-previews">
                 {previewImages.map((src, index) => (
-                  <div key={index} className="image-preview-item">
+                  <div key={index} className="property-form__image-preview">
                     <img src={src} alt={`Preview ${index}`} />
                     <button 
                       type="button" 
+                      className="property-form__image-remove"
                       onClick={() => {
                         const newPreviews = [...previewImages];
                         newPreviews.splice(index, 1);
@@ -547,7 +672,11 @@ const VendeurDashboard = () => {
             </div>
           </div>
           
-          <button type="submit" className="submit-button" disabled={isLoading}>
+          <button 
+            type="submit" 
+            className="property-form__submit" 
+            disabled={isLoading}
+          >
             {isLoading ? 'Publication en cours...' : 'Publier l\'annonce'}
           </button>
         </form>
