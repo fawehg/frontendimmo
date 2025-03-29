@@ -46,7 +46,7 @@ const Contact: React.FC = () => {
   return (
     <div className="contact-page" style={{ marginTop: headerHeight }}>
       {/* Header */}
-      <Header darkMode={false} toggleDarkMode={() => {}} />
+      <Header />
 
       {/* Conteneur pour l'image et les informations du bureau */}
       <div className="container">

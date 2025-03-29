@@ -488,7 +488,7 @@ const VendeurDashboard = () => {
 
   return (
     <div className={`property-dashboard ${darkMode ? 'property-dashboard--dark' : ''}`}>
-      <Header toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
+      <Header  />
       
       <div className="property-dashboard__content">
         <h1 className="property-dashboard__title">

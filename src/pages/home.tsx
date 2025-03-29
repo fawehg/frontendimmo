@@ -47,9 +47,9 @@ interface Type {
 
 const Home: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [navVisible, setNavVisible] = useState(true);
+  const [, setNavVisible] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [, setDropdownOpen] = useState(false);
   const [villes, setVilles] = useState<Ville[]>([]);
   const [delegations, setDelegations] = useState<Delegation[]>([]);
   const [categories, setCategories] = useState<Categorie[]>([]);

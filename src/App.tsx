@@ -9,20 +9,18 @@ import  LoginVendeur from './authentification/loginvendeur';
 import ResetPassword from './authentification/mdpoublierclient/resetpassword';
 import ResetPasswordVendeur from './authentification/mdpoubliervendeur/resetvendeur';
 import VendeurDashboard from './pages/vendeur/VendeurDashboard';
-
+import ProfilClient from './pages/profilclient/profil';
+import ProfilVendeur from './pages/profilvendeur/profilvendeur'
 const App = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, ] = useState(false);
 
-  // Fonction pour basculer entre le mode sombre et le mode clair
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+
 
   return (
     <Router>
       <div className={darkMode ? 'dark-mode' : ''}>
         {/* Header */}
-        <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <Header  />
 
         {/* Routes */}
         <Routes>
@@ -34,6 +32,8 @@ const App = () => {
           <Route path="/resetpassword" element={<ResetPassword />} /> 
           <Route path="/resetpasswordvendeur" element={<ResetPasswordVendeur />} /> 
           <Route path="/vendeur-dashboard" element={<VendeurDashboard />} />
+          <Route path="/profil-client" element={<ProfilClient />} />
+          <Route path="/profil-vendeur" element={<ProfilVendeur />} />
 
         </Routes>
 

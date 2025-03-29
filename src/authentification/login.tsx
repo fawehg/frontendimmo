@@ -8,6 +8,9 @@ import Footer from '../Footer';
 
 // Définir le type de la réponse de l'API
 type ApiResponse = {
+  vendeur: any;
+  client: any;
+  user: any;
   token: string; // Le token est directement dans la réponse
   message?: string; // Message optionnel
 };
@@ -97,37 +100,39 @@ const Login = () => {
       }
     }
   };
-
   const handleSubmitSignin = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     try {
-      // Déterminer l'endpoint en fonction du rôle
       const endpoint =
         state.role === 'client'
           ? 'http://localhost:8000/api/loginclient'
           : 'http://localhost:8000/api/loginvendeur';
-
+  
       const response = await axios.post<ApiResponse>(endpoint, {
         email: state.email,
         password: state.password,
       });
-
-      console.log('Réponse du backend:', response.data); // Ajoutez ce log pour déboguer
-
-      // Vérifiez la structure de la réponse avant d'accéder au token
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token); // Stocker le token
-        localStorage.setItem('role', state.role); // Stocker le rôle
-        alert('Connexion réussie !');
-
-        // Rediriger en fonction du rôle
+  
+      console.log('Réponse complète du backend:', response); // Pour débogage
+  
+      // Modifier cette partie pour gérer à la fois client et vendeur
+      const userData = state.role === 'client' ? response.data.client : response.data.vendeur;
+      
+      if (response.data.token && userData) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('role', state.role);
+        localStorage.setItem('prenom', userData.prenom);
+        localStorage.setItem('nom', userData.nom);
+        
+        alert(`Connexion réussie ! Bienvenue ${userData.prenom}`);
+  
         if (state.role === 'client') {
-          window.location.href = '/client-dashboard';
+          window.location.href = '/';
         } else if (state.role === 'vendeur') {
           window.location.href = '/vendeur-dashboard';
         }
       } else {
-        throw new Error('Token non trouvé dans la réponse du backend.');
+        throw new Error('Données manquantes dans la réponse du backend');
       }
     } catch (error) {
       console.error('Erreur lors de la connexion', error);
@@ -153,7 +158,7 @@ const Login = () => {
 
   return (
     <div>
-      <Header darkMode={false} toggleDarkMode={() => {}} />
+      <Header />
       <div className="login-container" id="login-container">
         {/* Formulaire d'inscription */}
         <div className="login-form-container login-form-container--signup">

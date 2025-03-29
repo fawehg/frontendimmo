@@ -81,26 +81,6 @@
 }
 
 /* Bouton "Publier une annonce" */
-.publish-button {
-  background-color: #0fb4f0; /* Couleur bleue */
-  color: white;
-}
-
-.publish-button:hover {
-  background-color: #0d9bd6; /* Couleur bleue plus foncée au survol */
-  transform: scale(1.05);
-}
-
-/* Bouton "Se connecter" */
-.login-button {
-  background-color: #2c3e50; /* Couleur sombre */
-  color: white;
-}
-
-.login-button:hover {
-  background-color: #1a252f; /* Couleur plus foncée au survol */
-  transform: scale(1.05);
-}
 
 
 

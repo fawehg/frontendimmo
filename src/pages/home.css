@@ -17,47 +17,7 @@ body {
     color: white;
   }
   
-  /* Navbar */
-  .nav {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 50px;
-    padding: 15px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    background-color: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(3px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    font-size: 16px;
-    color: white;
-  }
-  
-  .nav.scrolled {
-    background-color: rgba(0, 0, 0, 0.7);
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
-  }
-  
-  .nav.hidden {
-    opacity: 0;
-  }
-  
-  .nav a {
-    text-decoration: none;
-    color: white;
-    transition: color 0.3s ease, transform 0.3s ease;
-    font-size: 18px;
-    padding: 8px 15px;
-  }
-  
-  .nav a:hover {
-    color: #033648;
-    transform: scale(1.05);
-  }
-  
+
   /* Dropdown */
   .dropdown-content {
     position: absolute;
@@ -874,7 +834,70 @@ body {
   font-weight: 600;
   color: #090536;
 }
+/* ... styles existants ... */
 
+.user-profile {
+  position: relative;
+  cursor: pointer;
+}
+
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  color: #333;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: #f5f5f5;
+}
+
+.dropdown-icon {
+  margin-right: 10px;
+  color: #666;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #eee;
+  margin: 4px 0;
+}
+
+.logout-item {
+  color: #e74c3c;
+}
+
+.logout-item .dropdown-icon {
+  color: #e74c3c;
+}
+
+/* Style pour le bouton utilisateur connecté */
+.user-greeting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.user-greeting:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
 @media (max-width: 768px) {
   .explore-section {
     padding: 3rem 1rem;

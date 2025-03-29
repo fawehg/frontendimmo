@@ -2,7 +2,7 @@
 .footer {
   background-color: #f8f8f8; /* Fond clair */
   color: #333; /* Texte sombre */
-  padding: 40px 20px 20px 20px;
+  padding: 5px 20px 1px 50px;
   font-family: 'Arial', sans-serif; /* Police simple et moderne */
   border-top: 1px solid #e0e0e0; /* Ligne de séparation */
   z-index: 1000;
@@ -10,7 +10,7 @@
   width: 100%; /* Assure que le footer occupe toute la largeur */
   margin: 0; /* Supprime les marges par défaut */
   box-sizing: border-box; /* Inclut les paddings dans la largeur */
-  min-width: 200vh; /* S'assurer que l'image couvre toujours toute la hauteur, même après un zoom */
+  min-width: 100vh; /* S'assurer que l'image couvre toujours toute la hauteur, même après un zoom */
 
 }
 
@@ -109,7 +109,7 @@
 }
 
 .footer-bottom p {
-  margin: 5px 0;
+  margin: 1px 0;
   font-size: 0.9rem;
   color: #777; /* Texte gris clair */
 }

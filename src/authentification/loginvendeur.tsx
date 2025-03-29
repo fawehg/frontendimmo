@@ -7,13 +7,13 @@ import Header from "../Header";
 import Footer from "../Footer";
 
 interface AuthResponse {
-  token: string;
-  user?: {
+  vendeur: {
     id: number;
     nom: string;
     prenom: string;
     email: string;
   };
+  token: string;
 }
 
 interface FormState {
@@ -64,7 +64,7 @@ const Login = () => {
       [name]: value,
       errors: {
         ...prev.errors,
-        [name]: '' // Clear error when user types
+        [name]: ''
       }
     }));
   };
@@ -102,9 +102,12 @@ const Login = () => {
       });
 
       localStorage.setItem('token', response.data.token);
-      if (response.data.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-      }
+      localStorage.setItem('role', 'vendeur');
+      localStorage.setItem('prenom', response.data.vendeur.prenom);
+      
+      // Force la mise à jour du header
+      window.dispatchEvent(new Event('storage'));
+      
       navigate('/vendeur-dashboard');
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message || 'Erreur lors de l\'inscription';
@@ -125,9 +128,12 @@ const Login = () => {
       });
 
       localStorage.setItem('token', response.data.token);
-      if (response.data.user) {
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-      }
+      localStorage.setItem('role', 'vendeur');
+      localStorage.setItem('prenom', response.data.vendeur.prenom);
+      
+      // Force la mise à jour du header
+      window.dispatchEvent(new Event('storage'));
+      
       navigate('/vendeur-dashboard');
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message || 'Erreur lors de la connexion';
@@ -144,7 +150,7 @@ const Login = () => {
 
   return (
     <div className="login-page">
-      <Header darkMode={false} toggleDarkMode={() => {}} />
+      <Header />
       
       <div className="login-container" id="login-container">
         {/* Formulaire d'inscription */}
