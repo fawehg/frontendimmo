@@ -48,7 +48,7 @@ interface Type {
 const Home: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [, setNavVisible] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode] = useState(false);
   const [, setDropdownOpen] = useState(false);
   const [villes, setVilles] = useState<Ville[]>([]);
   const [delegations, setDelegations] = useState<Delegation[]>([]);
@@ -77,10 +77,6 @@ const Home: React.FC = () => {
   const handlePrev = () => {
     const prevIndex = Math.max(currentIndex - 1, 0);
     scrollToCard(prevIndex);
-  };
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
   };
 
   useEffect(() => {
@@ -153,7 +149,7 @@ const Home: React.FC = () => {
 
   return (
     <div className={darkMode ? "dark-mode" : ""}>
-      <Header toggleDarkMode={toggleDarkMode} darkMode={darkMode} />
+      <Header />
 
       <div className="hero-section">
         <motion.div

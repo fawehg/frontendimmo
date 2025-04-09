@@ -349,7 +349,53 @@
     font-size: 1.25rem;
   }
 }
+.infrastructure-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
 
+/* Conteneur principal */
+.infrastructure-section {
+  font-size: 1.1em; /* Taille de base augmentée */
+}
+
+/* Titre de section */
+.section-title {
+  font-size: 1.3em; /* Taille du titre */
+}
+
+/* Contenu agrandi */
+.enlarged-content {
+  font-size: 0.8em; /* Taille du texte globale */
+}
+
+/* Icônes */
+.enlarged-icon {
+  font-size: 1.8em !important;
+  margin: 0 10px;
+  vertical-align: middle;
+  color: #090536;
+}
+
+/* Texte des items */
+.enlarged-text {
+  font-size: 1.5em;
+  vertical-align: middle;
+}
+
+/* Alignement des checkbox */
+.infrastructure-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.infrastructure-field .infrastructure-item {
+  align-items: center;
+}
 /* ============ ANIMATIONS ============ */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
