@@ -19,10 +19,8 @@ const App = () => {
   return (
     <Router>
       <div className={darkMode ? 'dark-mode' : ''}>
-        {/* Header */}
         <Header  />
 
-        {/* Routes */}
         <Routes>
           <Route path="/" element={<Home />} /> {/* Page d'accueil */}
           <Route path="/contact" element={<Contact />} /> {/* Page de contact */}
@@ -37,7 +35,6 @@ const App = () => {
 
         </Routes>
 
-        {/* Footer */}
       </div>
     </Router>
   );
