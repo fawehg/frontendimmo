@@ -131,7 +131,6 @@ const Login = () => {
       localStorage.setItem('role', 'vendeur');
       localStorage.setItem('prenom', response.data.vendeur.prenom);
       
-      // Force la mise à jour du header
       window.dispatchEvent(new Event('storage'));
       
       navigate('/vendeur-dashboard');
@@ -153,7 +152,6 @@ const Login = () => {
       <Header />
       
       <div className="login-container" id="login-container">
-        {/* Formulaire d'inscription */}
         <div className="login-form-container login-form-container--signup">
           <form onSubmit={handleSubmitSignup} className="auth-form">
             <h1>Créer un compte</h1>
