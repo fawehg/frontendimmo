@@ -22,11 +22,11 @@ const App = () => {
         <Header  />
 
         <Routes>
-          <Route path="/" element={<Home />} /> {/* Page d'accueil */}
-          <Route path="/contact" element={<Contact />} /> {/* Page de contact */}
-          <Route path="/login" element={<Login />} /> {/* Route pour la page de connexion */}
-          <Route path="/about" element={<About />} /> {/* Route pour la page de connexion */}
-          <Route path="/loginvendeur" element={<LoginVendeur />} /> {/* Route pour la page de connexion */}
+          <Route path="/" element={<Home />} /> 
+          <Route path="/contact" element={<Contact />} /> 
+          <Route path="/login" element={<Login />} /> 
+          <Route path="/about" element={<About />} /> 
+          <Route path="/loginvendeur" element={<LoginVendeur />} /> 
           <Route path="/resetpassword" element={<ResetPassword />} /> 
           <Route path="/resetpasswordvendeur" element={<ResetPasswordVendeur />} /> 
           <Route path="/vendeur-dashboard" element={<VendeurDashboard />} />
