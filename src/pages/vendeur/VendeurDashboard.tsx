@@ -64,6 +64,16 @@ interface CaracteristiqueBureau {
   nom: string;
 }
 
+interface TypeSol {
+  id: number;
+  nom: string;
+}
+
+interface TypeTerrain {
+  id: number;
+  nom: string;
+}
+
 const VendeurDashboard = () => {
   const navigate = useNavigate();
   const [darkMode] = useState(false);
@@ -89,7 +99,7 @@ const VendeurDashboard = () => {
     vue: '',
     jardin: false,
     piscine: false,
-    numero_etage: '', // Changé de 'etage' à 'numero_etage'
+    numero_etage: '',
     superficieCouvert: '',
     climatise: false,
     ascenseur: false,
@@ -114,9 +124,13 @@ const VendeurDashboard = () => {
     orientation: '',
     cloture: false,
     puits: false,
+    superficieCouverte:'',
     surfaceConstructible: '',
+    types_terrains_id: '', // ✅ ajoute ceci
+    types_sols_id: '',      // ✅ ajoute ceci
+ 
     permisConstruction: false,
-    acces_independant: false, // Changé de 'accesIndependant'
+    acces_independant: false,
     parking_inclus: false
   });
 
@@ -130,6 +144,8 @@ const VendeurDashboard = () => {
   const [infrastructuresFerme, setInfrastructuresFerme] = useState<InfrastructureFerme[]>([]);
   const [orientationsFerme, setOrientationsFerme] = useState<OrientationFerme[]>([]);
   const [caracteristiquesBureaux, setCaracteristiquesBureaux] = useState<CaracteristiqueBureau[]>([]);
+  const [typesSol, setTypesSol] = useState<TypeSol[]>([]);
+  const [typesTerrain, setTypesTerrain] = useState<TypeTerrain[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -142,12 +158,22 @@ const VendeurDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [villesRes, categoriesRes, typesRes, environnementsRes, environnementsAppRes] = await Promise.all([
+        const [
+          villesRes, 
+          categoriesRes, 
+          typesRes, 
+          environnementsRes, 
+          environnementsAppRes,
+          typesSolRes,
+          typesTerrainRes
+        ] = await Promise.all([
           axios.get<Ville[]>("http://localhost:8000/api/villes"),
           axios.get<Categorie[]>("http://localhost:8000/api/categories"),
           axios.get<Type[]>("http://localhost:8000/api/types"),
           axios.get<Environnement[]>("http://localhost:8000/api/environnements"),
-          axios.get<EnvironnementApp[]>("http://localhost:8000/api/environnementapp")
+          axios.get<EnvironnementApp[]>("http://localhost:8000/api/environnementapp"),
+          axios.get<TypeSol[]>("http://localhost:8000/api/types-sols"),
+          axios.get<TypeTerrain[]>("http://localhost:8000/api/types-terrains")
         ]);
 
         setVilles(villesRes.data);
@@ -155,6 +181,8 @@ const VendeurDashboard = () => {
         setTypes(typesRes.data);
         setEnvironnements(environnementsRes.data);
         setEnvironnementsApp(environnementsAppRes.data);
+        setTypesSol(typesSolRes.data);
+        setTypesTerrain(typesTerrainRes.data);
       } catch (error) {
         console.error("Erreur lors du chargement des données", error);
       }
@@ -219,7 +247,7 @@ const VendeurDashboard = () => {
         name === 'wifi' || name === 'piscinePrivee' || name === 'garage' ||
         name === 'cave' || name === 'terrasse' || name === 'systemeIrrigation' ||
         name === 'cloture' || name === 'puits' || name === 'permisConstruction' ||
-        name === 'accesIndependant' || name === 'parkingInclus') {
+        name === 'acces_independant' || name === 'parking_inclus') {
         setFormData({
           ...formData,
           [name]: checked
@@ -305,10 +333,9 @@ const VendeurDashboard = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-
     e.preventDefault();
     setIsLoading(true);
-
+  
     try {
       const selectedType = types.find(t =>
         t.nom.toLowerCase().replace(' ', '_') === formData.typeTransaction
@@ -316,17 +343,18 @@ const VendeurDashboard = () => {
       const selectedCategory = categories.find(c =>
         c.nom.toLowerCase().replace(' ', '_') === formData.typeCategorie
       );
-
+  
       if (!selectedType || !selectedCategory) {
         throw new Error("Type ou catégorie non valide");
       }
-
+  
+      // Détermination de l'endpoint et des noms de champs selon la catégorie
       let endpoint = 'http://localhost:8000/api/maisons';
       let typeField = 'type_transaction_id';
       let chambresField = 'nombre_chambres';
       let piecesField = 'nombre_pieces';
       let etageField = 'etage';
-
+  
       if (formData.typeCategorie === 'appartement') {
         endpoint = 'http://localhost:8000/api/appartements';
       } else if (formData.typeCategorie === 'villa') {
@@ -344,24 +372,39 @@ const VendeurDashboard = () => {
       } else if (formData.typeCategorie === 'etage_de_villa') {
         endpoint = 'http://localhost:8000/api/etage-villas';
         typeField = 'type_id';
+      } else if (formData.typeCategorie === 'terrain_constructible') {
+        endpoint = 'http://localhost:8000/api/terrains';
+        typeField = 'type_id';
       }
-
+  
       const caracteristiquesIds = formData.caracteristiques
         .map((caracName: string) => {
           const found = caracteristiquesBureaux.find(c => c.nom === caracName);
           return found ? found.id : null;
         })
         .filter((id: number | null) => id !== null);
-
+  
       const getNumericValue = (value: string) => {
         if (!value || isNaN(parseInt(value))) return null;
         return parseInt(value);
       };
-
+  
       const selectedOrientation = formData.typeCategorie === 'ferme'
         ? orientationsFerme.find(o => o.nom.toLowerCase() === formData.orientation.toLowerCase())
         : null;
-
+  
+      // Utilisation de "terrain_constructible" pour récupérer les sélections
+      const selectedTerrain = formData.typeCategorie === 'terrain_constructible'
+      ? typesTerrain.find(t => t.id === parseInt(formData.types_terrains_id))
+      : null;
+    const selectedSol = formData.typeCategorie === 'terrain_constructible'
+      ? typesSol.find(s => s.id === parseInt(formData.types_sols_id))
+      : null;
+  
+      if (formData.typeCategorie === 'terrain_constructible' && (!selectedTerrain || !selectedSol)) {
+        throw new Error("Veuillez sélectionner un type de terrain et un type de sol valides");
+      }
+  
       const propertyData: Record<string, any> = {
         [typeField]: selectedType.id,
         categorie_id: selectedCategory.id,
@@ -375,64 +418,73 @@ const VendeurDashboard = () => {
         annee_construction: getNumericValue(formData.anneeConstruction),
         environnement_id: formData.environnement_id,
         meuble: formData.meuble ? 1 : 0,
-      };
+        cloture: formData.cloture ? 1 : 0, // Ajout de cloture ici
 
-      // Ajout des champs spécifiques pour chaque type de propriété
+      };
+  
       if (formData.typeCategorie === 'etage_de_villa') {
         propertyData.numero_etage = getNumericValue(formData.numero_etage) ?? 0;
         propertyData.acces_independant = formData.acces_independant ? 1 : 0;
         propertyData.parking_inclus = formData.parking_inclus ? 1 : 0;
-        propertyData.annee_construction = getNumericValue(formData.anneeConstruction);
-        propertyData.environnement_id = formData.environnement_id;
-      } else {
+      } else if (formData.typeCategorie === 'villa') {
         propertyData[chambresField] = getNumericValue(formData.nbChambres) ?? 0;
         propertyData[piecesField] = getNumericValue(formData.nbPieces) ?? 0;
-
-        if (formData.typeCategorie === 'villa') {
-          propertyData[etageField] = getNumericValue(formData.nbEtages);
-          propertyData.jardin = formData.jardin ? 1 : 0;
-          propertyData.piscine = formData.piscine ? 1 : 0;
-          propertyData.piscine_privee = formData.piscinePrivee ? 1 : 0;
-          propertyData.garage = formData.garage ? 1 : 0;
-          propertyData.cave = formData.cave ? 1 : 0;
-          propertyData.terrasse = formData.terrasse ? 1 : 0;
-          propertyData.superficie_jardin = getNumericValue(formData.superficieJardin);
-        } else if (formData.typeCategorie === 'appartement') {
-          propertyData[etageField] = getNumericValue(formData.etage);
-          propertyData.superficie_couverte = getNumericValue(formData.superficieCouvert);
-          propertyData.environnements_app = formData.environnementsApp;
-        } else if (formData.typeCategorie === 'bureau') {
-          propertyData.nombre_bureaux = getNumericValue(formData.nbBureaux);
-          propertyData.nombre_toilettes = getNumericValue(formData.nbToilettes);
-          propertyData.superficie_couverte = getNumericValue(formData.superficieCouvert);
-          propertyData.caracteristiques = caracteristiquesIds;
-          propertyData.climatise = formData.climatise ? 1 : 0;
-          propertyData.ascenseur = formData.ascenseur ? 1 : 0;
-          propertyData.parking = formData.parking ? 1 : 0;
-          propertyData.salle_reunion = formData.salleReunion ? 1 : 0;
-          propertyData.cuisine = formData.cuisine ? 1 : 0;
-          propertyData.securite = formData.securite ? 1 : 0;
-          propertyData.fibre_optique = formData.fibreOptique ? 1 : 0;
-          propertyData.wifi = formData.wifi ? 1 : 0;
-        } else if (formData.typeCategorie === 'ferme') {
-          if (!selectedOrientation) {
-            throw new Error("Veuillez sélectionner une orientation valide");
-          }
-          propertyData.orientation_id = selectedOrientation.id;
-          propertyData.infrastructures = formData.infrastructures;
-          propertyData.systeme_irrigation = formData.systemeIrrigation ? 1 : 0;
-          propertyData.cloture = formData.cloture ? 1 : 0;
-          propertyData.puits = formData.puits ? 1 : 0;
-          propertyData.type_terrain = formData.typeTerrain;
-          propertyData.type_sol = formData.typeSol;
-          propertyData.surface_constructible = getNumericValue(formData.surfaceConstructible);
-          propertyData.permis_construction = formData.permisConstruction ? 1 : 0;
+        propertyData[etageField] = getNumericValue(formData.nbEtages);
+        propertyData.jardin = formData.jardin ? 1 : 0;
+        propertyData.piscine = formData.piscine ? 1 : 0;
+        propertyData.piscine_privee = formData.piscinePrivee ? 1 : 0;
+        propertyData.garage = formData.garage ? 1 : 0;
+        propertyData.cave = formData.cave ? 1 : 0;
+        propertyData.terrasse = formData.terrasse ? 1 : 0;
+        propertyData.superficie_jardin = getNumericValue(formData.superficieJardin);
+      } else if (formData.typeCategorie === 'appartement') {
+        propertyData[chambresField] = getNumericValue(formData.nbChambres) ?? 0;
+        propertyData[piecesField] = getNumericValue(formData.nbPieces) ?? 0;
+        propertyData[etageField] = getNumericValue(formData.etage);
+        propertyData.superficie_couvert = getNumericValue(formData.superficieCouvert);
+        propertyData.environnements_app = formData.environnementsApp;
+      } else if (formData.typeCategorie === 'bureau') {
+        propertyData.nombre_bureaux = getNumericValue(formData.nbBureaux);
+        propertyData.nombre_toilettes = getNumericValue(formData.nbToilettes);
+        propertyData.superficie_couverte = getNumericValue(formData.superficieCouvert);
+        propertyData.caracteristiques = caracteristiquesIds;
+        propertyData.climatise = formData.climatise ? 1 : 0;
+        propertyData.ascenseur = formData.ascenseur ? 1 : 0;
+        propertyData.parking = formData.parking ? 1 : 0;
+        propertyData.salle_reunion = formData.salleReunion ? 1 : 0;
+        propertyData.cuisine = formData.cuisine ? 1 : 0;
+        propertyData.securite = formData.securite ? 1 : 0;
+        propertyData.fibre_optique = formData.fibreOptique ? 1 : 0;
+        propertyData.wifi = formData.wifi ? 1 : 0;
+      } else if (formData.typeCategorie === 'ferme') {
+        if (!selectedOrientation) {
+          throw new Error("Veuillez sélectionner une orientation valide");
         }
+        propertyData.orientation_id = selectedOrientation.id;
+        propertyData.infrastructures = formData.infrastructures;
+        propertyData.systeme_irrigation = formData.systemeIrrigation ? 1 : 0;
+        propertyData.cloture = formData.cloture ? 1 : 0;
+        propertyData.puits = formData.puits ? 1 : 0;
+        // Si besoin d'utiliser les types terrain/sol pour "ferme" (optionnel) :
+        propertyData.types_terrains_id = selectedTerrain?.id;
+        propertyData.types_sols_id = selectedSol?.id;
+        propertyData.surface_constructible = getNumericValue(formData.surfaceConstructible);
+        propertyData.permis_construction = formData.permisConstruction ? 1 : 0;
+      } else if (formData.typeCategorie === 'terrain_constructible') {
+        propertyData.types_terrains_id = selectedTerrain?.id;
+        propertyData.types_sols_id = selectedSol?.id;
+        propertyData.surface_constructible = getNumericValue(formData.surfaceConstructible);
+        propertyData.permis_construction = formData.permisConstruction ? 1 : 0;
+      }else if (formData.typeCategorie === 'maison') {
+        propertyData[chambresField] = getNumericValue(formData.nbChambres) ?? 0;
+        propertyData[piecesField] = getNumericValue(formData.nbPieces) ?? 0;
+        propertyData[etageField] = getNumericValue(formData.etage) ?? 0;
+        propertyData.jardin = formData.jardin ? 1 : 0;
+        propertyData.piscine = formData.piscine ? 1 : 0;
+        propertyData.garage = formData.garage ? 1 : 0;
       }
-
+  
       const formDataToSend = new FormData();
-
-      // Ajout des données au FormData
       Object.entries(propertyData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
           if (Array.isArray(value)) {
@@ -444,24 +496,18 @@ const VendeurDashboard = () => {
           }
         }
       });
-
-      // Ajout des images
+  
       formData.images.forEach((image, index) => {
         formDataToSend.append(`images[${index}]`, image);
       });
-
-      console.log('Envoi des données à:', endpoint, {
-        ...Object.fromEntries(formDataToSend),
-        images: `${formData.images.length} fichier(s)`
-      });
-
+  
       const response = await axios.post(endpoint, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',
         },
       });
-
+  
       alert('Annonce créée avec succès !');
       navigate('/');
     } catch (error: any) {
@@ -474,7 +520,10 @@ const VendeurDashboard = () => {
       setIsLoading(false);
     }
   };
-
+  
+  
+  
+  
 
   const renderSpecificFields = () => {
     console.log("Catégorie sélectionnée:", formData.typeCategorie);
@@ -908,34 +957,36 @@ const VendeurDashboard = () => {
       case 'terrain_constructible':
         return (
           <>
-            <div className="property-form__field">
-              <label><FaTree style={iconStyle} /> Type de terrain</label>
-              <select
-                name="typeTerrain"
-                value={formData.typeTerrain}
-                onChange={handleChange}
-              >
-                <option value="">Sélectionnez...</option>
-                <option value="agricole">Agricole</option>
-                <option value="constructible">Constructible</option>
-                <option value="forestier">Forestier</option>
-                <option value="lotissement">Lotissement</option>
-              </select>
-            </div>
-            <div className="property-form__field">
-              <label><FaTree style={iconStyle} /> Type de sol</label>
-              <select
-                name="typeSol"
-                value={formData.typeSol}
-                onChange={handleChange}
-              >
-                <option value="">Sélectionnez...</option>
-                <option value="argileux">Argileux</option>
-                <option value="sableux">Sableux</option>
-                <option value="limoneux">Limoneux</option>
-                <option value="pierreux">Pierreux</option>
-              </select>
-            </div>
+           <div className="property-form__field">
+        <label><FaTree style={iconStyle} /> Type de terrain</label>
+        <select
+          name="types_terrains_id" // Nom correspondant au state
+          value={formData.types_terrains_id}
+          onChange={handleChange}
+        >
+          <option value="">Sélectionnez...</option>
+          {typesTerrain.map(terrain => (
+            <option key={terrain.id} value={terrain.id}> {/* Utilisez l'ID comme valeur */}
+              {terrain.nom}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="property-form__field">
+        <label><FaTree style={iconStyle} /> Type de sol</label>
+        <select
+          name="types_sols_id" // Nom correspondant au state
+          value={formData.types_sols_id}
+          onChange={handleChange}
+        >
+          <option value="">Sélectionnez...</option>
+          {typesSol.map(sol => (
+            <option key={sol.id} value={sol.id}> {/* Utilisez l'ID comme valeur */}
+              {sol.nom}
+            </option>
+          ))}
+        </select>
+      </div>
             <div className="property-form__field">
               <label><FaRuler style={iconStyle} /> Surface constructible (m²)</label>
               <input

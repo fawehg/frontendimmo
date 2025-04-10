@@ -43,7 +43,7 @@ const About = () => {
   return (
     <div>
       {/* Ajout du Header */}
-      <Header darkMode={false} toggleDarkMode={() => {}} />
+      <Header/>
 
       {/* Contenu de la page "Qui sommes-nous" */}
       <div className="about-us-container">
