@@ -86,7 +86,7 @@
 
 /* Fixed blue background */
 .fixed-blue {
-  background-color: rgb(12, 128, 151) !important;
+  background-color:#D8E9FA;
   position: fixed;
   top: 0;
   left: 0;

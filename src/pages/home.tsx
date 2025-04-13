@@ -18,11 +18,18 @@ import {
   FaFilter,
   FaRedoAlt,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaBoxes,
+  FaTrashAlt,
+  FaSearchPlus,
+  FaSearchDollar,
+  FaBars,
+  FaTag
 } from "react-icons/fa";
 import "./home.css";
 import Header from "../Header";
 import Footer from "../Footer";
+import { HiOfficeBuilding } from "react-icons/hi";
 
 interface Ville {
   id: number;
@@ -164,7 +171,7 @@ const Home: React.FC = () => {
             <form className="search-form">
               <div className="form-group">
                 <label htmlFor="type">
-                  <FaBuilding className="icon" /> Vente
+                <FaTag className="icon" /> Vente
                 </label>
                 <select id="type" name="type">
                   <option value="">Sélectionnez un type</option>
@@ -178,7 +185,7 @@ const Home: React.FC = () => {
 
               <div className="form-group">
                 <label htmlFor="type-categorie">
-                  <FaBuilding className="icon" /> Type Catégorie
+                  <FaCity  className="icon" /> Type Catégorie
                 </label>
                 <select id="type-categorie" name="type-categorie">
                   <option value="">Sélectionnez une catégorie</option>
@@ -192,7 +199,7 @@ const Home: React.FC = () => {
 
               <div className="form-group">
                 <label htmlFor="ville">
-                  <FaCity className="icon" /> Ville
+                  <HiOfficeBuilding  className="icon" /> Ville
                 </label>
                 <select
                   id="ville"
@@ -228,7 +235,7 @@ const Home: React.FC = () => {
                   className="filter-button"
                   onClick={() => setShowFilters(!showFilters)}
                 >
-                  <FaFilter className="icon" /> 
+                  <FaBars      className="icon" /> 
                 </button>
               </div>
 

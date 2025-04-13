@@ -54,7 +54,7 @@ a {
   width: 90%;
   max-width: 100%;
   min-height: 700px;
-  margin: 100px auto 20px; /* Ajout de margin-top pour déplacer le contenu vers le bas */
+  margin: 130px auto 20px; /* Ajout de margin-top pour déplacer le contenu vers le bas */
 }
 
 .login-form-container {
@@ -118,7 +118,7 @@ a {
 
 .login-overlay {
   background: #2f94bf;
-  background: linear-gradient(135deg, #090536, #00ced1);  background-size: cover;
+  background: linear-gradient(135deg, #090536, #062441);  background-size: cover;
   background-position: 0 0;
   color: #ffffff;
   position: relative;

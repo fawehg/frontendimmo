@@ -616,7 +616,7 @@ body {
     }
   }
   .scrolled {
-    background-color: rgb(12, 128, 151) !important;
+    background-color: #D8E9FA;
     transition: background-color 0.3s ease-in-out;
   }
   
@@ -826,7 +826,7 @@ body {
 .apartment-icon,
 .commercial-icon,
 .office-icon {
-  color: rgb(12, 128, 151);
+  color: #090536;
 }
 
 .property-item span {

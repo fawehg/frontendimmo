@@ -1,11 +1,10 @@
 /* General Styles */
 .about-us-container {
-    padding: 40px;
+    padding: 100px;
     max-width: 1200px;
     margin: 0 auto;
     font-family: "Poppins", sans-serif; /* Use a modern font */
     color: #333;
-    background: linear-gradient(180deg, #f9f9f9, #eef6eb); /* Soft gradient background */
     margin: 100px auto 0; /* Ajoutez une marge en haut de 80px */
 
   }
@@ -26,7 +25,7 @@
     display: block;
     width: 80px;
     height: 3px;
-    background: linear-gradient(135deg, rgb(12, 128, 151), rgb(12, 128, 151)) !important;
+    background: #090536;
         margin: 20px auto 0;
     border-radius: 5px;
   }
@@ -123,7 +122,7 @@
     left: 0;
     width: 100%;
     height: 3px;
-    background-color: rgb(12, 128, 151) !important;
+    background-color:#090536;
     transform: scaleX(0);
     transform-origin: bottom right;
     transition: transform 0.3s ease;
@@ -139,7 +138,7 @@
     justify-content: space-around;
     align-items: center;
     padding: 60px;
-    background: linear-gradient(135deg, rgb(12, 128, 151), rgb(12, 128, 151)) !important;
+    background:#090536;
         color: white;
     border-radius: 20px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);

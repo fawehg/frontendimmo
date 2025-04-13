@@ -1,17 +1,23 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaUpload, FaUser, FaEnvelope, FaLock, FaMapMarkerAlt,
-  FaHome, FaBuilding, FaCity, FaStore, FaRestroom,
-  FaKey, FaSwimmingPool, FaTree, FaMountain, FaSnowflake,
-  FaParking, FaUsers, FaUtensils, FaShieldAlt,
-  FaNetworkWired, FaWifi, FaWater, FaTractor, FaCrow, FaBolt, FaRuler,
-  FaDoorOpen, FaChessBoard, FaWarehouse
+  FaUpload, FaListAlt  , FaBed , FaExpand , FaMapMarkerAlt,FaFileAlt ,FaDollarSign ,FaCloudSun ,FaImage ,FaLayerGroup ,
+  FaHome, FaBuilding, FaCity, FaStore, FaRestroom,FaHotel ,FaCalendarAlt ,
+  FaKey, FaSwimmingPool, FaTree, FaClipboardList  , FaSnowflake,
+  FaParking, FaUsers, FaUtensils, FaShieldAlt,FaThLarge ,FaMountain ,
+  FaNetworkWired, FaWifi, FaWater, FaTractor, FaCrow, FaBolt, FaRuler,FaExchangeAlt ,FaTags ,FaMapSigns ,FaClipboard  ,
+  FaDoorOpen, FaChessBoard, FaWarehouse,
+  FaUmbrellaBeach,
+  FaSeedling,
+  FaDrawPolygon,
+  FaTools,
+  FaCompass
 } from 'react-icons/fa';
 import axios from 'axios';
 import Header from "../../Header";
 import Footer from "../../Footer";
 import './VendeurDashboard.css';
+import { MdLandscape } from 'react-icons/md';
 
 interface Ville {
   id: number;
@@ -152,7 +158,7 @@ const VendeurDashboard = () => {
   const iconStyle = {
     color: '#090536',
     marginRight: '8px',
-    fontSize: '1.1em'
+    fontSize: '1.6em'
   };
 
   useEffect(() => {
@@ -541,7 +547,7 @@ const VendeurDashboard = () => {
         return (
           <>
             <div className="property-form__field">
-              <label><FaHome style={iconStyle} /> Nombre de chambres</label>
+              <label><FaHotel  style={iconStyle} /> Nombre de chambres</label>
               <input
                 type="number"
                 name="nbChambres"
@@ -551,7 +557,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaBuilding style={iconStyle} /> Nombre de pièces</label>
+              <label><FaThLarge  style={iconStyle} /> Nombre de pièces</label>
               <input
                 type="number"
                 name="nbPieces"
@@ -561,7 +567,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaCity style={iconStyle} /> Année de construction</label>
+              <label><FaCalendarAlt  style={iconStyle} /> Année de construction</label>
               <input
                 type="number"
                 name="anneeConstruction"
@@ -572,7 +578,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaKey style={iconStyle} /> Meublé</label>
+              <label><FaBed style={iconStyle} /> Meublé</label>
               <input
                 type="checkbox"
                 name="meuble"
@@ -581,7 +587,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaTree style={iconStyle} /> Environnement</label>
+              <label><FaMountain  style={iconStyle} /> Environnement</label>
               <div className="property-form__radio-group">
                 {environnements.map(env => (
                   <label key={env.id} className="radio-label">
@@ -620,7 +626,7 @@ const VendeurDashboard = () => {
                   />
                 </div>
                 <div className="property-form__field">
-                  <label><FaBuilding style={iconStyle} /> Nombre d'étages</label>
+                  <label><FaLayerGroup style={iconStyle} /> Nombre d'étages</label>
                   <input
                     type="number"
                     name="nbEtages"
@@ -667,7 +673,7 @@ const VendeurDashboard = () => {
                   />
                 </div>
                 <div className="property-form__field">
-                  <label><FaHome style={iconStyle} /> Terrasse</label>
+                  <label><FaUmbrellaBeach  style={iconStyle} /> Terrasse</label>
                   <input
                     type="checkbox"
                     name="terrasse"
@@ -683,7 +689,7 @@ const VendeurDashboard = () => {
         return (
           <>
             <div className="property-form__field">
-              <label><FaBuilding style={iconStyle} /> Superficie Couvert (m²)</label>
+              <label><FaExpand    style={iconStyle} /> Superficie Couvert (m²)</label>
               <input
                 type="number"
                 name="superficieCouvert"
@@ -694,7 +700,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaBuilding style={iconStyle} /> Étage</label>
+              <label><FaLayerGroup  style={iconStyle} /> Étage</label>
               <input
                 type="number"
                 name="etage"
@@ -705,7 +711,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaKey style={iconStyle} /> Meublé</label>
+              <label><FaBed  style={iconStyle} /> Meublé</label>
               <input
                 type="checkbox"
                 name="meuble"
@@ -715,7 +721,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaTree style={iconStyle} /> Environnement (Plusieurs choix possibles)</label>
+              <label><FaCloudSun  style={iconStyle} /> Environnement (Plusieurs choix possibles)</label>
               <div className="property-form__checkbox-group">
                 {environnementsApp.map(env => (
                   <label key={env.id} className="checkbox-label">
@@ -737,7 +743,7 @@ const VendeurDashboard = () => {
         return (
           <>
             <div className="property-form__field infrastructure-section">
-              <label className="section-title"><FaBuilding style={iconStyle} /> Infrastructures</label>
+              <label className="section-title"><FaTools  style={iconStyle} /> Infrastructures</label>
               <div className="property-form__checkbox-group enlarged-content">
                 {infrastructuresFerme.map(infra => {
                   const getInfrastructureIcon = (name: string) => {
@@ -752,7 +758,7 @@ const VendeurDashboard = () => {
                   const IconComponent = getInfrastructureIcon(infra.nom);
 
                   return (
-                    <label key={infra.id} className="infrastructure-item">
+                    <label key={infra.id} className="infrastructure-item" >
                       <input
                         type="checkbox"
                         name={`infrastructure_${infra.id}`}
@@ -768,7 +774,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaTree style={iconStyle} /> Orientation</label>
+              <label><FaCompass  style={iconStyle} /> Orientation</label>
               <select
                 name="orientation"
                 value={formData.orientation}
@@ -783,7 +789,7 @@ const VendeurDashboard = () => {
               </select>
             </div>
             <div className="property-form__field">
-              <label><FaTree style={iconStyle} /> Environnement</label>
+              <label><MdLandscape  style={iconStyle} /> Environnement</label>
               <div className="property-form__radio-group">
                 {environnementsFerme.map(env => (
                   <label key={env.id} className="radio-label">
@@ -869,7 +875,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaTree style={iconStyle} /> Environnement</label>
+              <label><FaCloudSun style={iconStyle} /> Environnement</label>
               <div className="property-form__radio-group">
                 {environnements.map(env => (
                   <label key={env.id} className="radio-label">
@@ -894,7 +900,7 @@ const VendeurDashboard = () => {
         return (
           <>
             <div className="property-form__field">
-              <label><FaBuilding style={iconStyle} /> Numéro d'étage</label>
+              <label><FaLayerGroup style={iconStyle} /> Numéro d'étage</label>
               <input
                 type="number"
                 name="numero_etage"
@@ -923,7 +929,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaTree style={iconStyle} /> Environnement</label>
+              <label><FaCloudSun style={iconStyle} /> Environnement</label>
               <div className="property-form__radio-group">
                 {environnements.map(env => (
                   <label key={env.id} className="radio-label">
@@ -941,7 +947,7 @@ const VendeurDashboard = () => {
                 ))}
               </div>
               <div className="property-form__field">
-                <label><FaCity style={iconStyle} /> Année de construction</label>
+                <label><FaCalendarAlt style={iconStyle} /> Année de construction</label>
                 <input
                   type="number"
                   name="anneeConstruction"
@@ -958,7 +964,7 @@ const VendeurDashboard = () => {
         return (
           <>
            <div className="property-form__field">
-        <label><FaTree style={iconStyle} /> Type de terrain</label>
+        <label><FaSeedling  style={iconStyle} /> Type de terrain</label>
         <select
           name="types_terrains_id" // Nom correspondant au state
           value={formData.types_terrains_id}
@@ -1007,9 +1013,9 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaTree style={iconStyle} /> Clôturé</label>
+              <label><FaDrawPolygon  style={iconStyle} /> Clôturé</label>
               <input
-                type="checkbox"
+                type="checkbox" 
                 name="cloture"
                 checked={formData.cloture}
                 onChange={handleChange}
@@ -1028,18 +1034,15 @@ const VendeurDashboard = () => {
       <Header />
 
       <div className="property-dashboard__content">
-        <h1 className="property-dashboard__title">
-          <FaKey style={iconStyle} /> Ajouter une nouvelle propriété
-        </h1>
-
+  
         <form onSubmit={handleSubmit} className="property-form">
           <div className="property-form__section">
             <h2 className="property-form__section-title">
-              <FaHome style={iconStyle} /> Informations de base
+            <FaClipboardList   style={iconStyle} /> Informations de base
             </h2>
 
             <div className="property-form__field">
-              <label><FaBuilding style={iconStyle} /> Type de transaction</label>
+              <label><FaExchangeAlt  style={iconStyle} /> Type de transaction</label>
               <select
                 name="typeTransaction"
                 value={formData.typeTransaction}
@@ -1056,7 +1059,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaBuilding style={iconStyle} /> Type de catégorie</label>
+              <label><FaTags  style={iconStyle} /> Type de catégorie</label>
               <select
                 name="typeCategorie"
                 value={formData.typeCategorie}
@@ -1091,7 +1094,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaMapMarkerAlt style={iconStyle} /> Délégation</label>
+              <label><FaMapSigns  style={iconStyle} /> Délégation</label>
               <select
                 name="delegation"
                 value={formData.delegation}
@@ -1118,7 +1121,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaUser style={iconStyle} /> Titre de l'annonce</label>
+              <label><FaClipboard   style={iconStyle} /> Titre de l'annonce</label>
               <input
                 type="text"
                 name="titre"
@@ -1129,7 +1132,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaEnvelope style={iconStyle} /> Description</label>
+              <label><FaFileAlt  style={iconStyle} /> Description</label>
               <textarea
                 name="description"
                 value={formData.description}
@@ -1140,7 +1143,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaLock style={iconStyle} /> Prix (DT)</label>
+              <label><FaDollarSign  style={iconStyle} /> Prix (DT)</label>
               <input
                 type="number"
                 name="prix"
@@ -1167,14 +1170,14 @@ const VendeurDashboard = () => {
 
           <div className="property-form__section">
             <h2 className="property-form__section-title">
-              <FaTree style={iconStyle} /> Caractéristiques spécifiques
+              <FaListAlt   style={iconStyle} /> Caractéristiques spécifiques
             </h2>
             {renderSpecificFields()}
           </div>
 
           <div className="property-form__section">
             <h2 className="property-form__section-title">
-              <FaSwimmingPool style={iconStyle} /> Images
+              <FaImage  style={iconStyle} /> Images
             </h2>
             <div className="property-form__field">
               <label className="property-form__file-upload">

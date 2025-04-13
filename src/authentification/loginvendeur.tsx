@@ -5,6 +5,7 @@ import { FaUser, FaEnvelope, FaLock, FaMapMarkerAlt } from 'react-icons/fa';
 import axios from 'axios';
 import Header from "../Header";
 import Footer from "../Footer";
+import { HiOfficeBuilding } from 'react-icons/hi';
 
 interface AuthResponse {
   vendeur: {
@@ -159,7 +160,8 @@ const Login = () => {
             {['nom', 'prenom', 'ville', 'adresse', 'email', 'password', 'confirmationMotDePasse'].map((field) => (
               <div key={field} className="login-input-container">
                 {field === 'nom' || field === 'prenom' ? <FaUser className="login-icon" /> :
-                 field === 'ville' || field === 'adresse' ? <FaMapMarkerAlt className="login-icon" /> :
+                 field === 'ville' ?<HiOfficeBuilding  className="login-icon" /> :
+                  field === 'adresse' ? <FaMapMarkerAlt className="login-icon" /> :
                  field === 'email' ? <FaEnvelope className="login-icon" /> : <FaLock className="login-icon" />}
                 
                 <input

@@ -5,6 +5,7 @@ import { FaUser, FaEnvelope, FaLock, FaMapMarkerAlt, FaUsers } from 'react-icons
 import axios from 'axios';
 import Header from '../Header';
 import Footer from '../Footer';
+import { HiOfficeBuilding } from 'react-icons/hi';
 
 // Définir le type de la réponse de l'API
 type ApiResponse = {
@@ -189,7 +190,7 @@ const Login = () => {
             </div>
             {errors.prenom && <span className="login-error">{errors.prenom}</span>}
             <div className="login-input-container">
-              <FaMapMarkerAlt className="login-icon" />
+              <HiOfficeBuilding className="login-icon" />
               <input
                 className="login-input-field"
                 type="text"

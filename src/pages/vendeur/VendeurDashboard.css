@@ -23,11 +23,11 @@
 
   /* Espacements */
   --space-xxs: 0.25rem;
-  --space-xs: 0.5rem;
+  --space-xs: 1.5rem;
   --space-sm: 1rem;
   --space-md: 1.5rem;
-  --space-lg: 2rem;
-  --space-xl: 3rem;
+  --space-lg: 9rem;
+  --space-xl: 4rem;
 
   /* Bordures */
   --border-radius-sm: 4px;
@@ -74,14 +74,14 @@
 .property-dashboard__content {
   flex: 1;
   padding: var(--space-lg);
-  max-width: 1200px;
+  max-width: 1250px;
   margin: 0 auto;
   width: 100%;
 }
 
 /* ============ TYPOGRAPHIE ============ */
 .property-dashboard__title {
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: 700;
   margin-bottom: var(--space-lg);
   color: var(--color-primary);
