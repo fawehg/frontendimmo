@@ -894,7 +894,116 @@ body {
   border-radius: 4px;
   transition: background 0.2s;
 }
+/* Properties Section */
+.properties-section {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
+.properties-section h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2rem;
+  color: #333;
+}
+
+/* Properties Grid */
+.properties-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 0 1rem;
+}
+
+/* Property Card */
+.property-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: white;
+}
+
+.property-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Property Image */
+.property-image {
+  height: 180px; /* Hauteur fixe pour toutes les images */
+  overflow: hidden;
+  position: relative;
+}
+
+.property-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Assure que l'image couvre la zone sans déformation */
+  transition: transform 0.3s ease;
+}
+
+.property-card:hover .property-image img {
+  transform: scale(1.05);
+}
+
+.no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Property Details */
+.property-details {
+  padding: 1rem;
+}
+
+.property-details h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.property-details p {
+  margin: 0.3rem 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.property-details p:first-of-type {
+  color: #666;
+}
+
+.property-details p:last-of-type {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .properties-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  
+  .property-image {
+    height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .properties-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .user-greeting:hover {
   background: rgba(255, 255, 255, 0.1);
 }

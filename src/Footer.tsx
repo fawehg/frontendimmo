@@ -6,7 +6,7 @@ const Footer: React.FC = () => {
     <div className="footer-top">
       {/* Section logo et description */}
       <div className="footer-logo-section">
-        <img src="/src/assets/Logaooo.png" alt="Le Portail Immobilier Logo" className="footer-logo-img" />
+        <img src="/src/assets/ll.png" alt="Le Portail Immobilier Logo" className="footer-logo-img" />
       
         <p>
           ImmoGo est une agence Immobilière qui vous propose des biens immobiliers en vente et en location, principalement sur la région de Hammamet.

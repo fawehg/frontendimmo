@@ -68,7 +68,7 @@ const Header = () => {
     <nav className={`nav ${isScrolled ? "scrolled" : ""} ${isHomePage ? "" : "fixed-blue"}`}>
       <div className="logo-container">
         <Link to="/">
-          <img src="/src/assets/Logaooo.png" alt="ImmoGo Logo" className="logo" />
+          <img src="/src/assets/ll.png" alt="ImmoGo Logo" className="logo" />
         </Link>
       </div>
 

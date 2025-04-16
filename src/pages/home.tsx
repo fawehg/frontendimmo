@@ -15,14 +15,9 @@ import {
   FaKey,
   FaHouseUser,
   FaStore,
-  FaFilter,
   FaRedoAlt,
   FaChevronLeft,
   FaChevronRight,
-  FaBoxes,
-  FaTrashAlt,
-  FaSearchPlus,
-  FaSearchDollar,
   FaBars,
   FaTag
 } from "react-icons/fa";
@@ -30,7 +25,9 @@ import "./home.css";
 import Header from "../Header";
 import Footer from "../Footer";
 import { HiOfficeBuilding } from "react-icons/hi";
+import { Link } from "react-router-dom";
 
+// Define interfaces with corrected `images` type
 interface Ville {
   id: number;
   nom: string;
@@ -52,6 +49,54 @@ interface Type {
   nom: string;
 }
 
+// Updated `images` to be an array of objects with a `url` property
+interface Maison {
+  id: number;
+  type_transaction_id: number;
+  categorie_id: number;
+  ville_id: number;
+  delegation_id: number;
+  adresse: string;
+  titre: string;
+  description: string;
+  prix: number;
+  superficie: number;
+  nombre_chambres: number;
+  nombre_pieces: number;
+  annee_construction: number;
+  environnement_id: number | null;
+  meuble: boolean;
+  images: { url: string }[]; // Fixed: Now an array of objects
+  type_transaction?: { id: number; nom: string };
+  categorie?: { id: number; nom: string };
+  ville?: { id: number; nom: string };
+  delegation?: { id: number; nom: string };
+  environnement?: { id: number; nom: string };
+}
+
+// Updated `images` to be an array of objects with a `url` property
+interface Appartement {
+  id: number;
+  type_transaction_id: number;
+  categorie_id: number;
+  ville_id: number;
+  delegation_id: number;
+  adresse: string;
+  titre: string;
+  description: string;
+  prix: number;
+  superficie: number;
+  superficie_couvert: number;
+  etage: number;
+  meuble: boolean;
+  images: { url: string }[]; // Fixed: Now an array of objects
+  type_transaction?: { id: number; nom: string };
+  categorie?: { id: number; nom: string };
+  ville?: { id: number; nom: string };
+  delegation?: { id: number; nom: string };
+  environnements_app?: { id: number; nom: string }[];
+}
+
 const Home: React.FC = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [, setNavVisible] = useState(true);
@@ -64,10 +109,12 @@ const Home: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const propertyListRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [maisons, setMaisons] = useState<Maison[]>([]);
+  const [appartements, setAppartements] = useState<Appartement[]>([]);
 
   const scrollToCard = (index: number) => {
     if (propertyListRef.current) {
-      const cardWidth = 220; // Largeur de carte + marge
+      const cardWidth = 220;
       propertyListRef.current.scrollTo({
         left: index * cardWidth,
         behavior: 'smooth'
@@ -77,7 +124,7 @@ const Home: React.FC = () => {
   };
 
   const handleNext = () => {
-    const nextIndex = Math.min(currentIndex + 1, 4); // 5 éléments (0-4)
+    const nextIndex = Math.min(currentIndex + 1, 4);
     scrollToCard(nextIndex);
   };
 
@@ -127,6 +174,24 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     axios
+      .get<Maison[]>("http://localhost:8000/api/maisons")
+      .then((response) => {
+        setMaisons(response.data);
+      })
+      .catch((error) => console.error("Erreur lors de la récupération des maisons :", error));
+  }, []);
+
+  useEffect(() => {
+    axios
+      .get<Appartement[]>("http://localhost:8000/api/appartements")
+      .then((response) => {
+        setAppartements(response.data);
+      })
+      .catch((error) => console.error("Erreur lors de la récupération des appartements :", error));
+  }, []);
+
+  useEffect(() => {
+    axios
       .get<Categorie[]>("http://localhost:8000/api/categories")
       .then((response) => {
         setCategories(response.data);
@@ -171,7 +236,7 @@ const Home: React.FC = () => {
             <form className="search-form">
               <div className="form-group">
                 <label htmlFor="type">
-                <FaTag className="icon" /> Vente
+                  <FaTag className="icon" /> Vente
                 </label>
                 <select id="type" name="type">
                   <option value="">Sélectionnez un type</option>
@@ -185,7 +250,7 @@ const Home: React.FC = () => {
 
               <div className="form-group">
                 <label htmlFor="type-categorie">
-                  <FaCity  className="icon" /> Type Catégorie
+                  <FaCity className="icon" /> Type Catégorie
                 </label>
                 <select id="type-categorie" name="type-categorie">
                   <option value="">Sélectionnez une catégorie</option>
@@ -199,7 +264,7 @@ const Home: React.FC = () => {
 
               <div className="form-group">
                 <label htmlFor="ville">
-                  <HiOfficeBuilding  className="icon" /> Ville
+                  <HiOfficeBuilding className="icon" /> Ville
                 </label>
                 <select
                   id="ville"
@@ -235,7 +300,7 @@ const Home: React.FC = () => {
                   className="filter-button"
                   onClick={() => setShowFilters(!showFilters)}
                 >
-                  <FaBars      className="icon" /> 
+                  <FaBars className="icon" /> 
                 </button>
               </div>
 
@@ -379,47 +444,119 @@ const Home: React.FC = () => {
       </div>
 
       <div className="explore-section">
-      <h2 className="section-title">Explorons par type de propriété</h2>
-      
-      <div className="explore-container">
-        <button 
-          className={`arrow-left ${currentIndex === 0 ? 'disabled' : ''}`} 
-          onClick={handlePrev}
-        >
-          <FaChevronLeft />
-        </button>
+        <h2 className="section-title">Explorons par type de propriété</h2>
+        
+        <div className="explore-container">
+          <button 
+            className={`arrow-left ${currentIndex === 0 ? 'disabled' : ''}`} 
+            onClick={handlePrev}
+          >
+            <FaChevronLeft />
+          </button>
 
-        <div className="horizontal-property-list" ref={propertyListRef}>
-          {[{ name: "Maison", icon: FaHome, iconClass: "home-icon" },
-            { name: "Villa", icon: FaHouseUser, iconClass: "villa-icon" },
-            { name: "Appartement", icon: FaBuilding, iconClass: "apartment-icon" },
-            { name: "Commercial", icon: FaStore, iconClass: "commercial-icon" },
-            { name: "Bureau", icon: FaCity, iconClass: "office-icon" }]
-            .map((item, index) => (
-              <motion.div
-                key={index}
-                className={`property-item ${index === currentIndex ? 'active' : ''}`}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                whileHover={{ scale: 1.05 }}
-              >
-                <div className={`property-icon ${item.iconClass}`}>
-                  <item.icon size={28} />
-                </div>
-                <span>{item.name}</span>
-              </motion.div>
-            ))}
+          <div className="horizontal-property-list" ref={propertyListRef}>
+            {[{ name: "Maison", icon: FaHome, iconClass: "home-icon" },
+              { name: "Villa", icon: FaHouseUser, iconClass: "villa-icon" },
+              { name: "Appartement", icon: FaBuilding, iconClass: "apartment-icon" },
+              { name: "Commercial", icon: FaStore, iconClass: "commercial-icon" },
+              { name: "Bureau", icon: FaCity, iconClass: "office-icon" }]
+              .map((item, index) => (
+                <motion.div
+                  key={index}
+                  className={`property-item ${index === currentIndex ? 'active' : ''}`}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <div className={`property-icon ${item.iconClass}`}>
+                    <item.icon size={28} />
+                  </div>
+                  <span>{item.name}</span>
+                </motion.div>
+              ))}
+          </div>
+
+          <button 
+            className={`arrow-right ${currentIndex === 4 ? 'disabled' : ''}`} 
+            onClick={handleNext}
+          >
+            <FaChevronRight />
+          </button>
+        </div>
+      </div>
+
+      <div className="section properties-section">
+        <h2>Nos Propriétés</h2>
+        
+        <h3 className="property-subtitle">Maisons</h3>
+        <div className="properties-grid">
+          {maisons.map((maison) => (
+            <div key={maison.id} className="property-card">
+              <div className="property-image">
+                {maison.images && maison.images.length > 0 ? (
+                  <img 
+                    src={maison.images[0].url} 
+                    alt={maison.titre} 
+                    onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null; // Use onError instead of onerror
+                      target.src = '/placeholder-image.jpg';
+                    }}
+                  />
+                ) : (
+                  <div className="no-image">Pas d'image disponible</div>
+                )}
+              </div>
+              <div className="property-details">
+                <h3>{maison.titre}</h3>
+                <p>{maison.adresse}</p>
+                <p>{maison.superficie} m² - {maison.prix} TND</p>
+                <Link 
+                  to={`/maison/${maison.id}`} 
+                  className="details-button"
+                >
+                  Voir les détails
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <button 
-          className={`arrow-right ${currentIndex === 4 ? 'disabled' : ''}`} 
-          onClick={handleNext}
-        >
-          <FaChevronRight />
-        </button>
+        <h3 className="property-subtitle">Appartements</h3>
+        <div className="properties-grid">
+          {appartements.map((appartement) => (
+            <div key={appartement.id} className="property-card">
+              <div className="property-image">
+                {appartement.images && appartement.images.length > 0 ? (
+                  <img 
+                    src={appartement.images[0].url} 
+                    alt={appartement.titre} 
+                    onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null; // Use onError instead of onerror
+                      target.src = '/placeholder-image.jpg';
+                    }}
+                  />
+                ) : (
+                  <div className="no-image">Pas d'image disponible</div>
+                )}
+              </div>
+              <div className="property-details">
+                <h3>{appartement.titre}</h3>
+                <p>{appartement.adresse}</p>
+                <p>{appartement.superficie} m² - {appartement.prix} TND</p>
+                <Link 
+                  to={`/appartement/${appartement.id}`} 
+                  className="details-button"
+                >
+                  Voir les détails
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
 
       <Footer />
 

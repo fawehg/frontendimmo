@@ -10,7 +10,8 @@ import ResetPassword from './authentification/mdpoublierclient/resetpassword';
 import ResetPasswordVendeur from './authentification/mdpoubliervendeur/resetvendeur';
 import VendeurDashboard from './pages/vendeur/VendeurDashboard';
 import ProfilClient from './pages/profilclient/profil';
-import ProfilVendeur from './pages/profilvendeur/profilvendeur'
+import ProfilVendeur from './pages/profilvendeur/profilvendeur';
+import DetailMaison from'./pages/maisons/DetailMaison';
 const App = () => {
   const [darkMode, ] = useState(false);
 
@@ -32,6 +33,7 @@ const App = () => {
           <Route path="/vendeur-dashboard" element={<VendeurDashboard />} />
           <Route path="/profil-client" element={<ProfilClient />} />
           <Route path="/profil-vendeur" element={<ProfilVendeur />} />
+          <Route path="/maison/:id" element={<DetailMaison />} />
 
         </Routes>
 
