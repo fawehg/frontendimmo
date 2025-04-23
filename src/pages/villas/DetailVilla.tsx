@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import "./DetailMaison.css";
+import "./DetailVilla.css";
 import Header from "../../Header";
 import Footer from "../../Footer";
 import {
@@ -26,31 +26,69 @@ import {
   FaArrowLeft as FaArrowLeftIcon,
   FaStreetView,
   FaUser,
+  FaLayerGroup,
+  FaSwimmingPool,
+  FaCar,
+  FaWineBottle,
+  FaUmbrellaBeach,
 } from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
 
-interface Maison {
+interface Ville {
   id: number;
-  type_transaction_id: number;
+  nom: string;
+}
+
+interface Delegation {
+  id: number;
+  nom: string;
+}
+
+interface Categorie {
+  id: number;
+  nom: string;
+}
+
+interface Type {
+  id: number;
+  nom: string;
+}
+
+interface Environnement {
+  id: number;
+  nom: string;
+}
+
+interface Villa {
+  id: number;
+  type_id: number;
   categorie_id: number;
   ville_id: number;
   delegation_id: number;
+  environnement_id: number;
   adresse: string;
   titre: string;
   description: string;
   prix: number;
   superficie: number;
-  nombre_chambres: number;
-  nombre_pieces: number;
+  chambres: number;
+  pieces: number;
   annee_construction: number;
-  environnement_id: number | null;
   meuble: boolean;
-  images: string[];
-  type_transaction?: { id: number; nom: string };
-  categorie?: { id: number; nom: string };
-  ville?: { id: number; nom: string };
-  delegation?: { id: number; nom: string };
-  environnement?: { id: number; nom: string };
+  jardin: boolean;
+  piscine: boolean;
+  etages: number | null;
+  superficie_jardin: number | null;
+  piscine_privee: boolean;
+  garage: boolean;
+  cave: boolean;
+  terrasse: boolean;
+  images: { url: string; path: string }[];
+  ville?: Ville;
+  delegation?: Delegation;
+  categorie?: Categorie;
+  type?: Type;
+  environnement?: Environnement;
 }
 
 interface SimilarProperty {
@@ -59,9 +97,8 @@ interface SimilarProperty {
   prix: number;
   adresse: string;
   ville: string;
-  nombre_chambres: number;
   superficie: number;
-  nombre_pieces: number;
+  chambres: number;
   image: string;
 }
 
@@ -110,9 +147,9 @@ const CercleProgression: React.FC<{
   );
 };
 
-const DetailMaison = () => {
+const DetailVilla = () => {
   const { id } = useParams<{ id: string }>();
-  const [maison, setMaison] = useState<Maison | null>(null);
+  const [villa, setVilla] = useState<Villa | null>(null);
   const [similarProperties, setSimilarProperties] = useState<SimilarProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -132,19 +169,61 @@ const DetailMaison = () => {
   const bgGradient = useTransform(scrollYProgress, [0, 1], [0, 90]);
 
   useEffect(() => {
-    const fetchMaison = async () => {
+    const fetchVilla = async () => {
       try {
-        const response = await axios.get<Maison>(`http://localhost:8000/api/maisons/${id}`);
-        setMaison(response.data);
+        const response = await axios.get<Villa>(`http://localhost:8000/api/villas/${id}`);
+        setVilla(response.data);
         setLoading(false);
 
-    
+        const mockSimilarProperties: SimilarProperty[] = [
+          {
+            id: 1,
+            titre: "Villa de luxe à Hammamet",
+            prix: 750000,
+            adresse: "Hammamet",
+            ville: "Tunisie",
+            superficie: 400,
+            chambres: 4,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 2,
+            titre: "Villa moderne à Sousse",
+            prix: 550000,
+            adresse: "Sousse",
+            ville: "Tunisie",
+            superficie: 350,
+            chambres: 3,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 3,
+            titre: "Villa avec piscine à Tunis",
+            prix: 820000,
+            adresse: "Tunis",
+            ville: "Tunisie",
+            superficie: 500,
+            chambres: 5,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 4,
+            titre: "Villa spacieuse à Sfax",
+            prix: 600000,
+            adresse: "Sfax",
+            ville: "Tunisie",
+            superficie: 380,
+            chambres: 4,
+            image: "https://via.placeholder.com/300x200",
+          },
+        ];
+        setSimilarProperties(mockSimilarProperties);
       } catch (err) {
-        setError("Impossible de charger les détails de la propriété");
+        setError("Impossible de charger les détails de la villa");
         setLoading(false);
       }
     };
-    fetchMaison();
+    fetchVilla();
   }, [id]);
 
   const handleThumbnailClick = (index: number) => {
@@ -165,15 +244,15 @@ const DetailMaison = () => {
   };
 
   const navigateFullScreen = (direction: "prev" | "next") => {
-    if (!maison) return;
+    if (!villa) return;
 
     if (direction === "prev") {
       setCurrentFullScreenIndex((prev) =>
-        prev === 0 ? maison.images.length - 1 : prev - 1
+        prev === 0 ? villa.images.length - 1 : prev - 1
       );
     } else {
       setCurrentFullScreenIndex((prev) =>
-        prev === maison.images.length - 1 ? 0 : prev + 1
+        prev === villa.images.length - 1 ? 0 : prev + 1
       );
     }
   };
@@ -208,7 +287,7 @@ const DetailMaison = () => {
         exit={{ opacity: 0 }}
       >
         <div className="spinner-chargement"></div>
-        <p>Chargement de la propriété...</p>
+        <p>Chargement de la villa...</p>
       </motion.div>
     );
 
@@ -229,7 +308,7 @@ const DetailMaison = () => {
       </motion.div>
     );
 
-  if (!maison)
+  if (!villa)
     return (
       <motion.div
         className="ecran-non-trouve"
@@ -237,8 +316,8 @@ const DetailMaison = () => {
         animate={{ opacity: 1 }}
       >
         <div className="contenu-non-trouve">
-          <h3>Propriété non trouvée</h3>
-          <p>La propriété que vous recherchez n'existe pas ou a été supprimée.</p>
+          <h3>Villa non trouvée</h3>
+          <p>La villa que vous recherchez n'existe pas ou a été supprimée.</p>
           <Link to="/" className="bouton-retour-accueil">
             <FaArrowLeft /> Retour à l'accueil
           </Link>
@@ -247,7 +326,7 @@ const DetailMaison = () => {
     );
 
   return (
-    <div className="detail-maison">
+    <div className="detail-villa">
       <Header />
 
       {/* Section Héros Parallaxe */}
@@ -262,7 +341,7 @@ const DetailMaison = () => {
         <div
           className="fond-parallaxe"
           style={{
-            backgroundImage: `url(http://localhost:8000/storage/${maison.images[0]})`,
+            backgroundImage: `url(${villa.images[0]?.url || "https://via.placeholder.com/1920x1080"})`,
             backgroundAttachment: "fixed",
           }}
         />
@@ -276,9 +355,9 @@ const DetailMaison = () => {
           >
             <Link to="/">Accueil</Link>
             <IoIosArrowForward />
-            <Link to="/maisons">Propriétés</Link>
+            <Link to="/villas">Villas</Link>
             <IoIosArrowForward />
-            <span>{maison.titre}</span>
+            <span>{villa.titre}</span>
           </motion.div>
 
           <motion.h1
@@ -287,7 +366,7 @@ const DetailMaison = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
           >
-            {maison.titre}
+            {villa.titre}
           </motion.h1>
 
           <motion.div
@@ -298,8 +377,8 @@ const DetailMaison = () => {
           >
             <FaMapMarkerAlt />
             <span>
-              {maison.adresse}, {maison.ville?.nom || "Non défini"} -{" "}
-              {maison.delegation?.nom || "Non défini"}
+              {villa.adresse}, {villa.ville?.nom || "Non défini"} -{" "}
+              {villa.delegation?.nom || "Non défini"}
             </span>
           </motion.div>
 
@@ -341,9 +420,9 @@ const DetailMaison = () => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 1.1, duration: 0.8, ease: "backOut" }}
         >
-          <span className="prix">{maison.prix.toLocaleString()} TND</span>
-          {maison.type_transaction?.nom && (
-            <span className="type-transaction">{maison.type_transaction.nom}</span>
+          <span className="prix">{villa.prix.toLocaleString()} TND</span>
+          {villa.type?.nom && (
+            <span className="type-transaction">{villa.type.nom}</span>
           )}
         </motion.div>
       </motion.section>
@@ -369,8 +448,8 @@ const DetailMaison = () => {
                 transition={{ duration: 0.5 }}
               >
                 <motion.img
-                  src={`http://localhost:8000/storage/${maison.images[activeImageIndex]}`}
-                  alt={`${maison.titre} ${activeImageIndex + 1}`}
+                  src={villa.images[activeImageIndex]?.url || "https://via.placeholder.com/800x450"}
+                  alt={`${villa.titre} ${activeImageIndex + 1}`}
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
                 />
@@ -389,7 +468,7 @@ const DetailMaison = () => {
                 className="bouton-nav precedent"
                 onClick={() =>
                   handleThumbnailClick(
-                    activeImageIndex === 0 ? maison.images.length - 1 : activeImageIndex - 1
+                    activeImageIndex === 0 ? villa.images.length - 1 : activeImageIndex - 1
                   )
                 }
                 whileHover={{ scale: 1.1 }}
@@ -401,7 +480,7 @@ const DetailMaison = () => {
                 className="bouton-nav suivant"
                 onClick={() =>
                   handleThumbnailClick(
-                    activeImageIndex === maison.images.length - 1 ? 0 : activeImageIndex + 1
+                    activeImageIndex === villa.images.length - 1 ? 0 : activeImageIndex + 1
                   )
                 }
                 whileHover={{ scale: 1.1 }}
@@ -413,7 +492,7 @@ const DetailMaison = () => {
           </div>
 
           <div className="defileur-miniatures">
-            {maison.images.map((image, index) => (
+            {villa.images.map((image, index) => (
               <motion.div
                 key={index}
                 className={`conteneur-miniature ${index === activeImageIndex ? "actif" : ""}`}
@@ -422,7 +501,7 @@ const DetailMaison = () => {
                 transition={{ duration: 0.3 }}
               >
                 <img
-                  src={`http://localhost:8000/storage/${image}`}
+                  src={image.url}
                   alt={`Miniature ${index + 1}`}
                 />
               </motion.div>
@@ -465,7 +544,7 @@ const DetailMaison = () => {
               </div>
               <div className="contenu-description">
                 <div className="texte-riche">
-                  {maison.description.split("\n").map((paragraph, i) => (
+                  {villa.description.split("\n").map((paragraph, i) => (
                     <motion.p
                       key={i}
                       initial={{ opacity: 0, x: -20 }}
@@ -479,15 +558,15 @@ const DetailMaison = () => {
                 <div className="caracteristiques-mises-en-valeur">
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
                     <div className="icone-mise-en-valeur">🏡</div>
+                    <span>Jardin paysager</span>
+                  </motion.div>
+                  <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
+                    <div className="icone-mise-en-valeur">🏊</div>
+                    <span>Piscine privée</span>
+                  </motion.div>
+                  <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
+                    <div className="icone-mise-en-valeur">🌄</div>
                     <span>Vue panoramique</span>
-                  </motion.div>
-                  <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🌞</div>
-                    <span>Exposition Sud</span>
-                  </motion.div>
-                  <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🔇</div>
-                    <span>Environnement calme</span>
                   </motion.div>
                 </div>
               </div>
@@ -520,26 +599,26 @@ const DetailMaison = () => {
                 <div className="grille-visuelle">
                   <div className="element-visuel">
                     <CercleProgression
-                      value={maison.nombre_chambres * 20}
-                      label="Chambres"
-                      icon={<FaBed />}
-                      count={maison.nombre_chambres}
-                    />
-                  </div>
-                  <div className="element-visuel">
-                    <CercleProgression
-                      value={Math.min(maison.superficie / 2, 100)}
+                      value={Math.min(villa.superficie / 5, 100)}
                       label="Superficie"
                       icon={<FaRulerCombined />}
-                      count={`${maison.superficie}m²`}
+                      count={`${villa.superficie}m²`}
                     />
                   </div>
                   <div className="element-visuel">
                     <CercleProgression
-                      value={maison.nombre_pieces * 15}
+                      value={villa.chambres * 10}
+                      label="Chambres"
+                      icon={<FaBed />}
+                      count={villa.chambres}
+                    />
+                  </div>
+                  <div className="element-visuel">
+                    <CercleProgression
+                      value={villa.pieces * 10}
                       label="Pièces"
                       icon={<FaHome />}
-                      count={maison.nombre_pieces}
+                      count={villa.pieces}
                     />
                   </div>
                 </div>
@@ -548,34 +627,72 @@ const DetailMaison = () => {
                 <div className="rangee-caracteristiques">
                   <div className="caracteristique">
                     <div className="icone-caracteristique">
-                      <FaCalendarAlt />
-                    </div>
-                    <div className="info-caracteristique">
-                      <span className="etiquette-caracteristique">Année de construction</span>
-                      <span className="valeur-caracteristique">{maison.annee_construction}</span>
-                    </div>
-                  </div>
-                  <div className="caracteristique">
-                    <div className="icone-caracteristique">
                       <FaChair />
                     </div>
                     <div className="info-caracteristique">
                       <span className="etiquette-caracteristique">Meublé</span>
-                      <span className="valeur-caracteristique">{maison.meuble ? "Oui" : "Non"}</span>
+                      <span className="valeur-caracteristique">{villa.meuble ? "Oui" : "Non"}</span>
+                    </div>
+                  </div>
+                  <div className="caracteristique">
+                    <div className="icone-caracteristique">
+                      <FaLayerGroup />
+                    </div>
+                    <div className="info-caracteristique">
+                      <span className="etiquette-caracteristique">Étages</span>
+                      <span className="valeur-caracteristique">{villa.etages ?? "Non spécifié"}</span>
                     </div>
                   </div>
                 </div>
-                {maison.environnement && (
-                  <div className="caracteristique pleine-largeur">
+                <div className="rangee-caracteristiques">
+                  <div className="caracteristique">
                     <div className="icone-caracteristique">
                       <FaTree />
                     </div>
                     <div className="info-caracteristique">
-                      <span className="etiquette-caracteristique">Environnement</span>
-                      <span className="valeur-caracteristique">{maison.environnement.nom}</span>
+                      <span className="etiquette-caracteristique">Jardin</span>
+                      <span className="valeur-caracteristique">{villa.jardin ? `${villa.superficie_jardin}m²` : "Non"}</span>
                     </div>
                   </div>
-                )}
+                  <div className="caracteristique">
+                    <div className="icone-caracteristique">
+                      <FaSwimmingPool />
+                    </div>
+                    <div className="info-caracteristique">
+                      <span className="etiquette-caracteristique">Piscine</span>
+                      <span className="valeur-caracteristique">{villa.piscine ? (villa.piscine_privee ? "Privée" : "Oui") : "Non"}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="rangee-caracteristiques">
+                  <div className="caracteristique">
+                    <div className="icone-caracteristique">
+                      <FaCar />
+                    </div>
+                    <div className="info-caracteristique">
+                      <span className="etiquette-caracteristique">Garage</span>
+                      <span className="valeur-caracteristique">{villa.garage ? "Oui" : "Non"}</span>
+                    </div>
+                  </div>
+                  <div className="caracteristique">
+                    <div className="icone-caracteristique">
+                      <FaWineBottle />
+                    </div>
+                    <div className="info-caracteristique">
+                      <span className="etiquette-caracteristique">Cave</span>
+                      <span className="valeur-caracteristique">{villa.cave ? "Oui" : "Non"}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="caracteristique pleine-largeur">
+                  <div className="icone-caracteristique">
+                    <FaUmbrellaBeach />
+                  </div>
+                  <div className="info-caracteristique">
+                    <span className="etiquette-caracteristique">Terrasse</span>
+                    <span className="valeur-caracteristique">{villa.terrasse ? "Oui" : "Non"}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -605,7 +722,7 @@ const DetailMaison = () => {
               <div className="mini-carte">
                 <div className="apercu-carte">
                   <iframe
-                    src={`https://maps.google.com/maps?q=${maison.ville?.nom},${maison.delegation?.nom}&output=embed`}
+                    src={`https://maps.google.com/maps?q=${villa.ville?.nom},${villa.delegation?.nom}&output=embed`}
                     frameBorder="0"
                     allowFullScreen
                   ></iframe>
@@ -613,7 +730,7 @@ const DetailMaison = () => {
                 <div className="superposition-carte">
                   <FaMapMarkerAlt className="pin-carte" />
                   <div className="infobulle-carte">
-                    {maison.adresse}, {maison.ville?.nom}
+                    {villa.adresse}, {villa.ville?.nom}
                   </div>
                 </div>
               </div>
@@ -624,7 +741,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="texte-info">
                     <h4>Type de transaction</h4>
-                    <p>{maison.type_transaction?.nom || "Non spécifié"}</p>
+                    <p>{villa.type?.nom || "Non spécifié"}</p>
                   </div>
                 </div>
                 <div className="element-info">
@@ -633,7 +750,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="texte-info">
                     <h4>Catégorie</h4>
-                    <p>{maison.categorie?.nom || "Non spécifié"}</p>
+                    <p>{villa.categorie?.nom || "Non spécifié"}</p>
                   </div>
                 </div>
                 <div className="element-info">
@@ -643,8 +760,17 @@ const DetailMaison = () => {
                   <div className="texte-info">
                     <h4>Localisation</h4>
                     <p>
-                      {maison.delegation?.nom}, {maison.ville?.nom}
+                      {villa.delegation?.nom}, {villa.ville?.nom}
                     </p>
+                  </div>
+                </div>
+                <div className="element-info">
+                  <div className="icone-info">
+                    <FaCalendarAlt />
+                  </div>
+                  <div className="texte-info">
+                    <h4>Année de construction</h4>
+                    <p>{villa.annee_construction || "Non spécifié"}</p>
                   </div>
                 </div>
               </div>
@@ -799,8 +925,8 @@ const DetailMaison = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2>Propriétés Similaires</h2>
-          <Link to="/maisons" className="voir-tout">
+          <h2>Villas Similaires</h2>
+          <Link to="/villas" className="voir-tout">
             Voir toutes <IoIosArrowForward />
           </Link>
         </motion.div>
@@ -848,13 +974,10 @@ const DetailMaison = () => {
                   </p>
                   <div className="caracteristiques-propriete">
                     <span>
-                      <FaBed /> {property.nombre_chambres}
-                    </span>
-                    <span>
                       <FaRulerCombined /> {property.superficie}m²
                     </span>
                     <span>
-                      <FaHome /> {property.nombre_pieces}
+                      <FaBed /> {property.chambres} chambres
                     </span>
                   </div>
                 </div>
@@ -893,7 +1016,7 @@ const DetailMaison = () => {
 
             <div className="conteneur-image-plein-ecran">
               <motion.img
-                src={`http://localhost:8000/storage/${maison.images[currentFullScreenIndex]}`}
+                src={villa.images[currentFullScreenIndex]?.url || "https://via.placeholder.com/1200x800"}
                 alt={`Plein écran ${currentFullScreenIndex + 1}`}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -918,10 +1041,10 @@ const DetailMaison = () => {
             </div>
 
             <div className="miniatures-plein-ecran">
-              {maison.images.map((image, index) => (
+              {villa.images.map((image, index) => (
                 <motion.img
                   key={index}
-                  src={`http://localhost:8000/storage/${image}`}
+                  src={image.url}
                   alt={`Miniature ${index + 1}`}
                   className={index === currentFullScreenIndex ? "actif" : ""}
                   onClick={() => setCurrentFullScreenIndex(index)}
@@ -970,4 +1093,4 @@ const DetailMaison = () => {
   );
 };
 
-export default DetailMaison;
+export default DetailVilla;

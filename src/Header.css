@@ -1,51 +1,158 @@
-/* Navbar */
+/* ==================== */
+/* NAVBAR */
+/* ==================== */
 .nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 100px; /* Ajuste la hauteur pour plus d'équilibre */
-  padding: 0 40px; /* Ajoute un peu d'espace autour */
+  height: 100px;
+  padding: 0 40px;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
   background-color: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(6px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   font-size: 18px;
-  color: white;
   transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Header.css - Ajouts */
-
-.nav-buttons {
-  position: relative;
+/* Scrolled navbar */
+.nav.scrolled {
+  background-color: #090536;
+  backdrop-filter: blur(15px);
 }
 
-/* Cache complètement les boutons quand connecté */
-.user-connected .publish-button,
-.user-connected .login-button {
-  display: none !important;
-  visibility: hidden !important;
-  height: 0 !important;
-  width: 0 !important;
-  overflow: hidden !important;
-  position: absolute !important;
-  opacity: 0 !important;
+/* Fixed background for non-home pages */
+.nav.fixed-blue {
+  background-color: #090536;
+  color: white;
 }
 
-/* Garantit que le profil utilisateur est bien visible */
-.user-profile {
+/* ==================== */
+/* LOGO */
+/* ==================== */
+.logo-container {
+  display: flex;
+  align-items: center;
+  flex: 0 1 auto;
+}
+
+.logo {
+  width: 150px;
+  height: 65px;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  margin-left: 100px;
+}
+
+.logo:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+/* Icon next to logo */
+.logo-container .icon {
+  font-size: 30px;
+  margin-left: 10px;
+  color: white;
+}
+
+/* ==================== */
+/* NAV LINKS */
+/* ==================== */
+.nav-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  flex-grow: 1;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #090536; /* Initial color */
+  font-size: 18px;
+  font-weight: 500;
+  transition: color 0.3s ease, transform 0.2s ease;
+  padding: 10px 15px;
+  white-space: nowrap;
+}
+
+.nav.scrolled .nav-links a,
+.nav.fixed-blue .nav-links a {
+  color: #ffffff; /* White on scroll or non-home pages */
+}
+
+.nav-links a:hover {
+  color: #0fb4f0;
+  transform: scale(1.05);
+}
+
+/* ==================== */
+/* DROPDOWN */
+/* ==================== */
+.dropdown {
   position: relative;
+  display: inline-block;
+}
+
+.dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  color: #090536; /* Initial color */
+  font-weight: bold;
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav.scrolled .dropdown-link,
+.nav.fixed-blue .dropdown-link {
+  color: #ffffff; /* White on scroll or non-home pages */
+}
+
+.dropdown-link:hover {
+  background-color: white;
+  color: black;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #090536;
+  border-radius: 5px;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
   z-index: 100;
 }
 
-.user-dropdown {
-  z-index: 101;
+.dropdown-menu a {
+  padding: 10px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
 }
-/* Bouton de base */
+
+.dropdown-menu a:hover {
+  background-color: #0689bd;
+}
+
+/* ==================== */
+/* NAV BUTTONS */
+/* ==================== */
+.nav-buttons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  position: relative;
+}
+
 .nav-button {
   padding: 10px 20px;
   font-size: 16px;
@@ -54,56 +161,8 @@
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.3s ease;
 }
-/* Logo */
-.logo-container {
-  display: flex;
-  align-items: center;
-  flex: 0 1 auto;
-}
 
-.logo {
-  width: 160px; /* Ajuste la taille du logo */
-  height: auto;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.logo:hover {
-  transform: scale(1.1);
-  opacity: 0.9;
-}
-
-/* Icône à côté du logo */
-.logo-container .icon {
-  font-size: 30px; /* Taille de l'icône */
-  margin-left: 10px; /* Espace entre le logo et l'icône */
-  color: white;
-}
-
-/* Nav links */
-/* Nav links */
-.nav-links {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px; /* Réduisez l'espacement pour rapprocher les éléments */
-  flex-grow: 1; /* Permet un alignement fluide */
-}
-
-.nav-links a {
-  text-decoration: none;
-  color:#090536;
-  font-size: 18px;
-  font-weight: 500;
-  transition: color 0.3s ease, transform 0.2s ease;
-  padding: 10px 15px;
-  white-space: nowrap; /* Empêche le texte de passer à la ligne */
-}
-
-.nav-links a:hover {
-  color: #0fb4f0;
-  transform: scale(1.05);
-}
-/* Bouton "Publier une annonce" */
+/* Publish button */
 .publish-button {
   background-color: #0fb4f0;
   color: white;
@@ -114,7 +173,7 @@
   transform: scale(1.05);
 }
 
-/* Bouton "Se connecter" */
+/* Login button */
 .login-button {
   background-color: #2c3e50;
   color: white;
@@ -125,83 +184,20 @@
   transform: scale(1.05);
 }
 
-
-
-/* Scrolled navbar */
-.scrolled {
-  background-color: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(15px);
-}
-
-/* Fixed background */
-.fixed-blue {
-  background-color:#D8E9FA
-}
-.button-icon {
-  margin-right: 8px; /* Espace entre l'icône et le texte */
+.button-icon,
+.button-icon-publier {
+  margin-right: 8px;
   font-size: 18px;
   vertical-align: middle;
 }
-/* Conteneur du dropdown */
-/* Conteneur du dropdown */
-.dropdown {
+
+/* ==================== */
+/* USER PROFILE */
+/* ==================== */
+.user-profile-wrapper {
   position: relative;
-  display: inline-block;
+  z-index: 1001;
 }
-
-/* Lien du dropdown */
-.dropdown-link {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  text-decoration: none;
-  color: white; /* Texte blanc par défaut */
-  font-weight: bold;
-  padding: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s, color 0.3s; /* Animation fluide */
-}
-
-/* Style au survol du lien "Bien Immobilier" */
-.dropdown-link:hover {
-  background-color: white; /* Fond blanc au survol */
-  color: black; /* Texte noir au survol */
-}
-
-/* Menu déroulant */
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background-color:#090536;
-  border-radius: 5px;
-  min-width: 150px;
-  display: flex;
-  flex-direction: column;
-  z-index: 100;
-}
-
-/* Liens dans le menu déroulant */
-.dropdown-menu a {
-  padding: 10px;
-  color: white; /* Texte blanc */
-  text-decoration: none;
-  font-weight: bold;
-  transition: background-color 0.3s; /* Animation fluide */
-}
-
-/* Style au survol des liens du menu déroulant */
-.dropdown-menu a:hover {
-  background-color: #0689bd; /* Fond gris foncé au survol */
-}
-/* Nav buttons */
-.nav-buttons {
-  display: flex;
-  gap: 15px;
-  align-items: center; /* Aligner les boutons verticalement */
-}
-
-
 
 .user-profile {
   position: relative;
@@ -211,7 +207,24 @@
   gap: 8px;
   padding: 8px 16px;
   border-radius: 4px;
-  background-color:#090536;
+  background-color: #090536;
+}
+
+.user-profile.seller {
+  background-color: #090536;
+}
+
+.user-profile.client {
+  background-color:  #090536;
+}
+
+.user-profile .user-greeting {
+  color: #ffffff;
+}
+
+.user-greeting strong {
+  font-weight: 600;
+  margin-left: 5px;
 }
 
 .user-dropdown {
@@ -221,8 +234,8 @@
   background: rgb(12, 128, 151);
   border: 1px solid #ddd;
   border-radius: 4px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1002;
   min-width: 200px;
 }
 
@@ -238,67 +251,16 @@
   cursor: pointer;
 }
 
-/* Ajoutez ces règles CSS */
-
-  .nav-buttons {
-    position: relative; /* Important pour le positionnement */
-  }
-
-.user-profile-wrapper {
-  position: relative;
-  z-index: 1001; /* Plus élevé que les boutons */
+.dropdown-divider {
+  height: 1px;
+  background-color: #ddd;
+  margin: 5px 0;
 }
 
-/* Cache complètement les boutons quand connecté */
+/* Hide buttons when user is connected */
 .user-profile-wrapper ~ .publish-button,
 .user-profile-wrapper ~ .login-button {
   display: none !important;
   visibility: hidden !important;
   opacity: 0 !important;
-}
-
-/* Garantit que le menu dropdown est au-dessus */
-.user-dropdown {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  z-index: 1002;
-}
-
-/* Empêche le chevauchement */
-.user-profile {
-  position: relative;
-  z-index: 1001;
-}
-/* Styles spécifiques pour les rôles */
-.user-profile.seller {
-  background-color: #090536; /* Couleur pour les vendeurs */
-}
-
-.user-profile.client {
-  background-color: #2f94bf; /* Couleur pour les clients */
-}
-
-.user-profile.seller .user-greeting {
-  color: #ffffff;
-}
-
-.user-profile.client .user-greeting {
-  color: #ffffff;
-}
-
-/* Style pour le texte du rôle */
-.user-greeting strong {
-  font-weight: 600;
-  margin-left: 5px;
-}
-/* Icônes dans les boutons */
-.button-icon,
-.button-icon-publier {
-  margin-right: 8px; /* Espace entre l'icône et le texte */
-  font-size: 18px;
-  vertical-align: middle;
-
-  
-  
 }

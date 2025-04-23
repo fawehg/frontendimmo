@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaUpload, FaListAlt  , FaBed , FaExpand , FaMapMarkerAlt,FaFileAlt ,FaDollarSign ,FaCloudSun ,FaImage ,FaLayerGroup ,
-  FaHome, FaBuilding, FaCity, FaStore, FaRestroom,FaHotel ,FaCalendarAlt ,
-  FaKey, FaSwimmingPool, FaTree, FaClipboardList  , FaSnowflake,
-  FaParking, FaUsers, FaUtensils, FaShieldAlt,FaThLarge ,FaMountain ,
-  FaNetworkWired, FaWifi, FaWater, FaTractor, FaCrow, FaBolt, FaRuler,FaExchangeAlt ,FaTags ,FaMapSigns ,FaClipboard  ,
+  FaUpload, FaListAlt, FaBed, FaExpand, FaMapMarkerAlt, FaFileAlt, FaDollarSign, FaCloudSun, FaImage, FaLayerGroup,
+  FaHome, FaBuilding, FaCity, FaStore, FaRestroom, FaHotel, FaCalendarAlt,
+  FaKey, FaSwimmingPool, FaTree, FaClipboardList, FaSnowflake,
+  FaParking, FaUsers, FaUtensils, FaShieldAlt, FaThLarge, FaMountain,
+  FaNetworkWired, FaWifi, FaWater, FaTractor, FaCrow, FaBolt, FaRuler, FaExchangeAlt, FaTags, FaMapSigns, FaClipboard,
   FaDoorOpen, FaChessBoard, FaWarehouse,
   FaUmbrellaBeach,
   FaSeedling,
@@ -130,11 +130,10 @@ const VendeurDashboard = () => {
     orientation: '',
     cloture: false,
     puits: false,
-    superficieCouverte:'',
+    superficieCouverte: '',
     surfaceConstructible: '',
-    types_terrains_id: '', // ✅ ajoute ceci
-    types_sols_id: '',      // ✅ ajoute ceci
- 
+    types_terrains_id: '',
+    types_sols_id: '',
     permisConstruction: false,
     acces_independant: false,
     parking_inclus: false
@@ -241,6 +240,115 @@ const VendeurDashboard = () => {
     }
   };
 
+  const generateDescription = () => {
+    let descriptionParts = [];
+    
+    // Informations de base communes à toutes les catégories
+    descriptionParts.push(`Superbe propriété située à ${villes.find(v => v.id === parseInt(formData.ville))?.nom || ''}, ${delegations.find(d => d.id === parseInt(formData.delegation))?.nom || ''}.`);
+    descriptionParts.push(`Adresse exacte : ${formData.adresse}.`);
+    descriptionParts.push(`Superficie : ${formData.superficie} m².`);
+    descriptionParts.push(`Prix : ${formData.prix} DT.`);
+
+    // Informations spécifiques selon la catégorie
+    switch(formData.typeCategorie) {
+      case 'maison':
+      case 'villa':
+        descriptionParts.push(`Cette ${formData.typeCategorie === 'maison' ? 'maison' : 'villa'} dispose de :`);
+        descriptionParts.push(`- ${formData.nbChambres} chambre(s)`);
+        descriptionParts.push(`- ${formData.nbPieces} pièce(s) au total`);
+        if (formData.anneeConstruction) descriptionParts.push(`- Année de construction : ${formData.anneeConstruction}`);
+        if (formData.meuble) descriptionParts.push(`- Meublé : Oui`);
+        if (formData.environnement_id) {
+          const env = environnements.find(e => e.id === formData.environnement_id);
+          if (env) descriptionParts.push(`- Environnement : ${env.nom}`);
+        }
+        
+        if (formData.typeCategorie === 'villa') {
+          if (formData.nbEtages) descriptionParts.push(`- Nombre d'étages : ${formData.nbEtages}`);
+          if (formData.jardin) {
+            descriptionParts.push(`- Jardin : Oui${formData.superficieJardin ? ` (${formData.superficieJardin} m²)` : ''}`);
+          }
+          if (formData.piscine) descriptionParts.push(`- Piscine : ${formData.piscinePrivee ? 'Privée' : 'Partagée'}`);
+          if (formData.garage) descriptionParts.push(`- Garage : Oui`);
+          if (formData.cave) descriptionParts.push(`- Cave : Oui`);
+          if (formData.terrasse) descriptionParts.push(`- Terrasse : Oui`);
+        }
+        break;
+
+      case 'appartement':
+        descriptionParts.push(`Cet appartement dispose de :`);
+        if (formData.etage) descriptionParts.push(`- Situé au ${formData.etage} étage`);
+        if (formData.superficieCouvert) descriptionParts.push(`- Superficie couverte : ${formData.superficieCouvert} m²`);
+        if (formData.meuble) descriptionParts.push(`- Meublé : Oui`);
+        if (formData.environnementsApp.length > 0) {
+          const envs = environnementsApp.filter(e => formData.environnementsApp.includes(e.id)).map(e => e.nom);
+          descriptionParts.push(`- Environnements : ${envs.join(', ')}`);
+        }
+        break;
+
+      case 'bureau':
+        descriptionParts.push(`Ce bureau dispose de :`);
+        if (formData.nbBureaux) descriptionParts.push(`- ${formData.nbBureaux} bureau(x)`);
+        if (formData.nbToilettes) descriptionParts.push(`- ${formData.nbToilettes} toilette(s)`);
+        if (formData.superficieCouvert) descriptionParts.push(`- Superficie couverte : ${formData.superficieCouvert} m²`);
+        if (formData.caracteristiques.length > 0) {
+          descriptionParts.push(`- Équipements : ${formData.caracteristiques.join(', ')}`);
+        }
+        if (formData.environnement_id) {
+          const env = environnements.find(e => e.id === formData.environnement_id);
+          if (env) descriptionParts.push(`- Environnement : ${env.nom}`);
+        }
+        break;
+
+      case 'ferme':
+        descriptionParts.push(`Cette ferme dispose de :`);
+        if (formData.orientation) {
+          descriptionParts.push(`- Orientation : ${formData.orientation}`);
+        }
+        if (formData.infrastructures.length > 0) {
+          const infras = infrastructuresFerme.filter(i => formData.infrastructures.includes(i.id)).map(i => i.nom);
+          descriptionParts.push(`- Infrastructures : ${infras.join(', ')}`);
+        }
+        if (formData.systemeIrrigation) descriptionParts.push(`- Système d'irrigation : Oui`);
+        if (formData.cloture) descriptionParts.push(`- Clôture : Oui`);
+        if (formData.puits) descriptionParts.push(`- Puits : Oui`);
+        if (formData.environnement_id) {
+          const env = environnementsFerme.find(e => e.id === formData.environnement_id);
+          if (env) descriptionParts.push(`- Environnement : ${env.nom}`);
+        }
+        break;
+
+      case 'etage_de_villa':
+        descriptionParts.push(`Cet étage de villa dispose de :`);
+        if (formData.numero_etage) descriptionParts.push(`- Numéro d'étage : ${formData.numero_etage}`);
+        if (formData.acces_independant) descriptionParts.push(`- Accès indépendant : Oui`);
+        if (formData.parking_inclus) descriptionParts.push(`- Parking inclus : Oui`);
+        if (formData.environnement_id) {
+          const env = environnements.find(e => e.id === formData.environnement_id);
+          if (env) descriptionParts.push(`- Environnement : ${env.nom}`);
+        }
+        if (formData.anneeConstruction) descriptionParts.push(`- Année de construction : ${formData.anneeConstruction}`);
+        break;
+
+      case 'terrain_constructible':
+        descriptionParts.push(`Ce terrain constructible dispose de :`);
+        if (formData.types_terrains_id) {
+          const terrain = typesTerrain.find(t => t.id === parseInt(formData.types_terrains_id));
+          if (terrain) descriptionParts.push(`- Type de terrain : ${terrain.nom}`);
+        }
+        if (formData.types_sols_id) {
+          const sol = typesSol.find(s => s.id === parseInt(formData.types_sols_id));
+          if (sol) descriptionParts.push(`- Type de sol : ${sol.nom}`);
+        }
+        if (formData.surfaceConstructible) descriptionParts.push(`- Surface constructible : ${formData.surfaceConstructible} m²`);
+        if (formData.permisConstruction) descriptionParts.push(`- Permis de construction : Oui`);
+        if (formData.cloture) descriptionParts.push(`- Clôture : Oui`);
+        break;
+    }
+
+    return descriptionParts.join('\n');
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
 
@@ -254,10 +362,11 @@ const VendeurDashboard = () => {
         name === 'cave' || name === 'terrasse' || name === 'systemeIrrigation' ||
         name === 'cloture' || name === 'puits' || name === 'permisConstruction' ||
         name === 'acces_independant' || name === 'parking_inclus') {
-        setFormData({
-          ...formData,
-          [name]: checked
-        });
+        setFormData(prev => ({
+          ...prev,
+          [name]: checked,
+          description: generateDescription()
+        }));
       } else {
         const newCaracteristiques = [...formData.caracteristiques];
         if (checked) {
@@ -268,16 +377,23 @@ const VendeurDashboard = () => {
             newCaracteristiques.splice(index, 1);
           }
         }
-        setFormData({
-          ...formData,
-          caracteristiques: newCaracteristiques
-        });
+        setFormData(prev => ({
+          ...prev,
+          caracteristiques: newCaracteristiques,
+          description: generateDescription()
+        }));
       }
     } else {
-      setFormData({
-        ...formData,
-        [name]: value
-      });
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        description: name === 'ville' || name === 'delegation' || name === 'adresse' || 
+                   name === 'superficie' || name === 'prix' ? generateDescription() : prev.description
+      }));
+
+      if (name === 'ville') {
+        fetchDelegations(value);
+      }
     }
   };
 
@@ -289,17 +405,19 @@ const VendeurDashboard = () => {
 
       return {
         ...prev,
-        infrastructures: newInfrastructures
+        infrastructures: newInfrastructures,
+        description: generateDescription()
       };
     });
   };
 
   const handleEnvironnementChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    setFormData({
-      ...formData,
-      environnement_id: parseInt(value)
-    });
+    setFormData(prev => ({
+      ...prev,
+      environnement_id: parseInt(value),
+      description: generateDescription()
+    }));
   };
 
   const handleEnvironnementAppChange = (id: number) => {
@@ -310,7 +428,8 @@ const VendeurDashboard = () => {
 
       return {
         ...prev,
-        environnementsApp: newEnvironnements
+        environnementsApp: newEnvironnements,
+        description: generateDescription()
       };
     });
   };
@@ -318,10 +437,10 @@ const VendeurDashboard = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      setFormData({
-        ...formData,
-        images: [...formData.images, ...files]
-      });
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...files]
+      }));
 
       const previews = files.map(file => URL.createObjectURL(file));
       setPreviewImages([...previewImages, ...previews]);
@@ -335,7 +454,7 @@ const VendeurDashboard = () => {
 
     const newImages = [...formData.images];
     newImages.splice(index, 1);
-    setFormData({ ...formData, images: newImages });
+    setFormData(prev => ({ ...prev, images: newImages }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -354,7 +473,7 @@ const VendeurDashboard = () => {
         throw new Error("Type ou catégorie non valide");
       }
   
-      // Détermination de l'endpoint et des noms de champs selon la catégorie
+      // Détermination de l'endpoint selon la catégorie
       let endpoint = 'http://localhost:8000/api/maisons';
       let typeField = 'type_transaction_id';
       let chambresField = 'nombre_chambres';
@@ -399,13 +518,12 @@ const VendeurDashboard = () => {
         ? orientationsFerme.find(o => o.nom.toLowerCase() === formData.orientation.toLowerCase())
         : null;
   
-      // Utilisation de "terrain_constructible" pour récupérer les sélections
       const selectedTerrain = formData.typeCategorie === 'terrain_constructible'
-      ? typesTerrain.find(t => t.id === parseInt(formData.types_terrains_id))
-      : null;
-    const selectedSol = formData.typeCategorie === 'terrain_constructible'
-      ? typesSol.find(s => s.id === parseInt(formData.types_sols_id))
-      : null;
+        ? typesTerrain.find(t => t.id === parseInt(formData.types_terrains_id))
+        : null;
+      const selectedSol = formData.typeCategorie === 'terrain_constructible'
+        ? typesSol.find(s => s.id === parseInt(formData.types_sols_id))
+        : null;
   
       if (formData.typeCategorie === 'terrain_constructible' && (!selectedTerrain || !selectedSol)) {
         throw new Error("Veuillez sélectionner un type de terrain et un type de sol valides");
@@ -424,8 +542,7 @@ const VendeurDashboard = () => {
         annee_construction: getNumericValue(formData.anneeConstruction),
         environnement_id: formData.environnement_id,
         meuble: formData.meuble ? 1 : 0,
-        cloture: formData.cloture ? 1 : 0, // Ajout de cloture ici
-
+        cloture: formData.cloture ? 1 : 0,
       };
   
       if (formData.typeCategorie === 'etage_de_villa') {
@@ -471,7 +588,6 @@ const VendeurDashboard = () => {
         propertyData.systeme_irrigation = formData.systemeIrrigation ? 1 : 0;
         propertyData.cloture = formData.cloture ? 1 : 0;
         propertyData.puits = formData.puits ? 1 : 0;
-        // Si besoin d'utiliser les types terrain/sol pour "ferme" (optionnel) :
         propertyData.types_terrains_id = selectedTerrain?.id;
         propertyData.types_sols_id = selectedSol?.id;
         propertyData.surface_constructible = getNumericValue(formData.surfaceConstructible);
@@ -481,7 +597,7 @@ const VendeurDashboard = () => {
         propertyData.types_sols_id = selectedSol?.id;
         propertyData.surface_constructible = getNumericValue(formData.surfaceConstructible);
         propertyData.permis_construction = formData.permisConstruction ? 1 : 0;
-      }else if (formData.typeCategorie === 'maison') {
+      } else if (formData.typeCategorie === 'maison') {
         propertyData[chambresField] = getNumericValue(formData.nbChambres) ?? 0;
         propertyData[piecesField] = getNumericValue(formData.nbPieces) ?? 0;
         propertyData[etageField] = getNumericValue(formData.etage) ?? 0;
@@ -526,28 +642,20 @@ const VendeurDashboard = () => {
       setIsLoading(false);
     }
   };
-  
-  
-  
-  
 
   const renderSpecificFields = () => {
-    console.log("Catégorie sélectionnée:", formData.typeCategorie);
-
-    // Normalisez le nom de la catégorie pour la comparaison
     const normalizedCategory = formData.typeCategorie
       .toLowerCase()
-      .replace(/ /g, '_')       // Remplace les espaces par _
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // Supprime les accents
+      .replace(/ /g, '_')
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
     switch (normalizedCategory) {
       case 'maison':
       case 'villa':
-
         return (
           <>
             <div className="property-form__field">
-              <label><FaHotel  style={iconStyle} /> Nombre de chambres</label>
+              <label><FaHotel style={iconStyle} /> Nombre de chambres</label>
               <input
                 type="number"
                 name="nbChambres"
@@ -557,7 +665,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaThLarge  style={iconStyle} /> Nombre de pièces</label>
+              <label><FaThLarge style={iconStyle} /> Nombre de pièces</label>
               <input
                 type="number"
                 name="nbPieces"
@@ -567,7 +675,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaCalendarAlt  style={iconStyle} /> Année de construction</label>
+              <label><FaCalendarAlt style={iconStyle} /> Année de construction</label>
               <input
                 type="number"
                 name="anneeConstruction"
@@ -587,7 +695,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaMountain  style={iconStyle} /> Environnement</label>
+              <label><FaMountain style={iconStyle} /> Environnement</label>
               <div className="property-form__radio-group">
                 {environnements.map(env => (
                   <label key={env.id} className="radio-label">
@@ -673,7 +781,7 @@ const VendeurDashboard = () => {
                   />
                 </div>
                 <div className="property-form__field">
-                  <label><FaUmbrellaBeach  style={iconStyle} /> Terrasse</label>
+                  <label><FaUmbrellaBeach style={iconStyle} /> Terrasse</label>
                   <input
                     type="checkbox"
                     name="terrasse"
@@ -689,7 +797,7 @@ const VendeurDashboard = () => {
         return (
           <>
             <div className="property-form__field">
-              <label><FaExpand    style={iconStyle} /> Superficie Couvert (m²)</label>
+              <label><FaExpand style={iconStyle} /> Superficie Couvert (m²)</label>
               <input
                 type="number"
                 name="superficieCouvert"
@@ -698,9 +806,8 @@ const VendeurDashboard = () => {
                 min="0"
               />
             </div>
-
             <div className="property-form__field">
-              <label><FaLayerGroup  style={iconStyle} /> Étage</label>
+              <label><FaLayerGroup style={iconStyle} /> Étage</label>
               <input
                 type="number"
                 name="etage"
@@ -709,9 +816,8 @@ const VendeurDashboard = () => {
                 min="0"
               />
             </div>
-
             <div className="property-form__field">
-              <label><FaBed  style={iconStyle} /> Meublé</label>
+              <label><FaBed style={iconStyle} /> Meublé</label>
               <input
                 type="checkbox"
                 name="meuble"
@@ -719,9 +825,8 @@ const VendeurDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-
             <div className="property-form__field">
-              <label><FaCloudSun  style={iconStyle} /> Environnement (Plusieurs choix possibles)</label>
+              <label><FaCloudSun style={iconStyle} /> Environnement (Plusieurs choix possibles)</label>
               <div className="property-form__checkbox-group">
                 {environnementsApp.map(env => (
                   <label key={env.id} className="checkbox-label">
@@ -743,7 +848,7 @@ const VendeurDashboard = () => {
         return (
           <>
             <div className="property-form__field infrastructure-section">
-              <label className="section-title"><FaTools  style={iconStyle} /> Infrastructures</label>
+              <label className="section-title"><FaTools style={iconStyle} /> Infrastructures</label>
               <div className="property-form__checkbox-group enlarged-content">
                 {infrastructuresFerme.map(infra => {
                   const getInfrastructureIcon = (name: string) => {
@@ -758,7 +863,7 @@ const VendeurDashboard = () => {
                   const IconComponent = getInfrastructureIcon(infra.nom);
 
                   return (
-                    <label key={infra.id} className="infrastructure-item" >
+                    <label key={infra.id} className="infrastructure-item">
                       <input
                         type="checkbox"
                         name={`infrastructure_${infra.id}`}
@@ -772,9 +877,8 @@ const VendeurDashboard = () => {
                 })}
               </div>
             </div>
-
             <div className="property-form__field">
-              <label><FaCompass  style={iconStyle} /> Orientation</label>
+              <label><FaCompass style={iconStyle} /> Orientation</label>
               <select
                 name="orientation"
                 value={formData.orientation}
@@ -789,7 +893,7 @@ const VendeurDashboard = () => {
               </select>
             </div>
             <div className="property-form__field">
-              <label><MdLandscape  style={iconStyle} /> Environnement</label>
+              <label><MdLandscape style={iconStyle} /> Environnement</label>
               <div className="property-form__radio-group">
                 {environnementsFerme.map(env => (
                   <label key={env.id} className="radio-label">
@@ -832,14 +936,12 @@ const VendeurDashboard = () => {
                 min="0"
               />
             </div>
-
             {caracteristiquesBureaux.length > 0 && (
               <div className="property-form__field">
                 <label><FaBuilding style={iconStyle} /> Caractéristiques</label>
                 <div className="property-form__checkbox-group">
                   {caracteristiquesBureaux.map(caracteristique => {
                     let IconComponent = FaBuilding;
-
                     if (caracteristique.nom.includes('Climatisé')) IconComponent = FaSnowflake;
                     else if (caracteristique.nom.includes('Ascenseur')) IconComponent = FaBuilding;
                     else if (caracteristique.nom.includes('Parking')) IconComponent = FaParking;
@@ -863,7 +965,6 @@ const VendeurDashboard = () => {
                 </div>
               </div>
             )}
-
             <div className="property-form__field">
               <label><FaBuilding style={iconStyle} /> Superficie couverte (m²)</label>
               <input
@@ -890,8 +991,7 @@ const VendeurDashboard = () => {
                     <span className="radio-custom"></span>
                     {env.nom}
                   </label>
-                ))
-                }
+                ))}
               </div>
             </div>
           </>
@@ -946,53 +1046,53 @@ const VendeurDashboard = () => {
                   </label>
                 ))}
               </div>
-              <div className="property-form__field">
-                <label><FaCalendarAlt style={iconStyle} /> Année de construction</label>
-                <input
-                  type="number"
-                  name="anneeConstruction"
-                  value={formData.anneeConstruction}
-                  onChange={handleChange}
-                  min="1900"
-                  max={new Date().getFullYear()}
-                />
-              </div>
+            </div>
+            <div className="property-form__field">
+              <label><FaCalendarAlt style={iconStyle} /> Année de construction</label>
+              <input
+                type="number"
+                name="anneeConstruction"
+                value={formData.anneeConstruction}
+                onChange={handleChange}
+                min="1900"
+                max={new Date().getFullYear()}
+              />
             </div>
           </>
         );
       case 'terrain_constructible':
         return (
           <>
-           <div className="property-form__field">
-        <label><FaSeedling  style={iconStyle} /> Type de terrain</label>
-        <select
-          name="types_terrains_id" // Nom correspondant au state
-          value={formData.types_terrains_id}
-          onChange={handleChange}
-        >
-          <option value="">Sélectionnez...</option>
-          {typesTerrain.map(terrain => (
-            <option key={terrain.id} value={terrain.id}> {/* Utilisez l'ID comme valeur */}
-              {terrain.nom}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="property-form__field">
-        <label><FaTree style={iconStyle} /> Type de sol</label>
-        <select
-          name="types_sols_id" // Nom correspondant au state
-          value={formData.types_sols_id}
-          onChange={handleChange}
-        >
-          <option value="">Sélectionnez...</option>
-          {typesSol.map(sol => (
-            <option key={sol.id} value={sol.id}> {/* Utilisez l'ID comme valeur */}
-              {sol.nom}
-            </option>
-          ))}
-        </select>
-      </div>
+            <div className="property-form__field">
+              <label><FaSeedling style={iconStyle} /> Type de terrain</label>
+              <select
+                name="types_terrains_id"
+                value={formData.types_terrains_id}
+                onChange={handleChange}
+              >
+                <option value="">Sélectionnez...</option>
+                {typesTerrain.map(terrain => (
+                  <option key={terrain.id} value={terrain.id}>
+                    {terrain.nom}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="property-form__field">
+              <label><FaTree style={iconStyle} /> Type de sol</label>
+              <select
+                name="types_sols_id"
+                value={formData.types_sols_id}
+                onChange={handleChange}
+              >
+                <option value="">Sélectionnez...</option>
+                {typesSol.map(sol => (
+                  <option key={sol.id} value={sol.id}>
+                    {sol.nom}
+                  </option>
+                ))}
+              </select>
+            </div>
             <div className="property-form__field">
               <label><FaRuler style={iconStyle} /> Surface constructible (m²)</label>
               <input
@@ -1013,7 +1113,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaDrawPolygon  style={iconStyle} /> Clôturé</label>
+              <label><FaDrawPolygon style={iconStyle} /> Clôturé</label>
               <input
                 type="checkbox" 
                 name="cloture"
@@ -1021,7 +1121,6 @@ const VendeurDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-
           </>
         );
       default:
@@ -1034,15 +1133,14 @@ const VendeurDashboard = () => {
       <Header />
 
       <div className="property-dashboard__content">
-  
         <form onSubmit={handleSubmit} className="property-form">
           <div className="property-form__section">
             <h2 className="property-form__section-title">
-            <FaClipboardList   style={iconStyle} /> Informations de base
+              <FaClipboardList style={iconStyle} /> Informations de base
             </h2>
 
             <div className="property-form__field">
-              <label><FaExchangeAlt  style={iconStyle} /> Type de transaction</label>
+              <label><FaExchangeAlt style={iconStyle} /> Type de transaction</label>
               <select
                 name="typeTransaction"
                 value={formData.typeTransaction}
@@ -1059,7 +1157,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaTags  style={iconStyle} /> Type de catégorie</label>
+              <label><FaTags style={iconStyle} /> Type de catégorie</label>
               <select
                 name="typeCategorie"
                 value={formData.typeCategorie}
@@ -1094,7 +1192,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaMapSigns  style={iconStyle} /> Délégation</label>
+              <label><FaMapSigns style={iconStyle} /> Délégation</label>
               <select
                 name="delegation"
                 value={formData.delegation}
@@ -1121,7 +1219,7 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaClipboard   style={iconStyle} /> Titre de l'annonce</label>
+              <label><FaClipboard style={iconStyle} /> Titre de l'annonce</label>
               <input
                 type="text"
                 name="titre"
@@ -1132,18 +1230,19 @@ const VendeurDashboard = () => {
             </div>
 
             <div className="property-form__field">
-              <label><FaFileAlt  style={iconStyle} /> Description</label>
+              <label><FaFileAlt style={iconStyle} /> Description</label>
               <textarea
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
                 rows={5}
                 required
+                readOnly
               />
             </div>
 
             <div className="property-form__field">
-              <label><FaDollarSign  style={iconStyle} /> Prix (DT)</label>
+              <label><FaDollarSign style={iconStyle} /> Prix (DT)</label>
               <input
                 type="number"
                 name="prix"
@@ -1170,14 +1269,14 @@ const VendeurDashboard = () => {
 
           <div className="property-form__section">
             <h2 className="property-form__section-title">
-              <FaListAlt   style={iconStyle} /> Caractéristiques spécifiques
+              <FaListAlt style={iconStyle} /> Caractéristiques spécifiques
             </h2>
             {renderSpecificFields()}
           </div>
 
           <div className="property-form__section">
             <h2 className="property-form__section-title">
-              <FaImage  style={iconStyle} /> Images
+              <FaImage style={iconStyle} /> Images
             </h2>
             <div className="property-form__field">
               <label className="property-form__file-upload">

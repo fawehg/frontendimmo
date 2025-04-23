@@ -37,8 +37,8 @@ const Header = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const heroSectionHeight = document.querySelector(".hero-section")?.clientHeight || 0;
-      setIsScrolled(window.scrollY > heroSectionHeight);
+      const scrollThreshold = 50; // Small scroll to trigger change
+      setIsScrolled(window.scrollY > scrollThreshold);
     };
 
     syncAuthState(); // Initial sync
@@ -68,7 +68,11 @@ const Header = () => {
     <nav className={`nav ${isScrolled ? "scrolled" : ""} ${isHomePage ? "" : "fixed-blue"}`}>
       <div className="logo-container">
         <Link to="/">
-          <img src="/src/assets/ll.png" alt="ImmoGo Logo" className="logo" />
+          <img 
+            src={isScrolled || !isHomePage ? "/src/assets/hh.png" : "/src/assets/hhh.png"} 
+            alt="ImmoGo Logo" 
+            className="logo" 
+          />
         </Link>
       </div>
 
@@ -82,15 +86,15 @@ const Header = () => {
           onMouseEnter={() => setIsDropdownOpen(true)} 
           onMouseLeave={() => setIsDropdownOpen(false)}
         >
-          <Link to="/bienimmoblier" className="dropdown-link">
+          <Link to="/all-properties" className="dropdown-link">
             Bien Immobilier <FaAngleDown />
           </Link>
           {isDropdownOpen && (
             <div className="dropdown-menu">
-              <Link className="liste" to="/bienimmoblier/villa">Villa</Link>
-              <Link className="liste" to="/bienimmoblier/maison">Maison</Link>
-              <Link className="liste" to="/bienimmoblier/terrain">Terrain</Link>
-              <Link className="liste" to="/bienimmoblier/appartement">Appartement</Link>
+              <Link className="liste" to="/all-properties?categorie=Villa">Villa</Link>
+              <Link className="liste" to="/all-properties?categorie=Maison">Maison</Link>
+              <Link className="liste" to="/all-properties?categorie=Terrain">Terrain</Link>
+              <Link className="liste" to="/all-properties?categorie=Appartement">Appartement</Link>
             </div>
           )}
         </div>
@@ -99,40 +103,38 @@ const Header = () => {
       <div className="nav-buttons">
         {userData ? (
           <div 
-            className="user-profile"
+            className="user-profile-wrapper"
             onMouseEnter={() => setUserProfileOpen(true)}
             onMouseLeave={() => setUserProfileOpen(false)}
           >
-            <span className="user-greeting">
-              <FaUser className="button-icon" /> {userData.prenom}
-            </span>
-            
-            {userProfileOpen && (
-              <div className="user-dropdown">
-                {/* Lien vers le profil adapté au rôle */}
-                <Link 
-                  to={userData.role === 'vendeur' ? '/profil-vendeur' : '/profil-client'} 
-                  className="dropdown-item"
-                >
-                  <FaUser className="dropdown-icon" /> Mon Profil
-                </Link>
-                
-                {userData.role === 'vendeur' && (
-                  <>
+            <div className={`user-profile ${userData.role === 'vendeur' ? 'seller' : 'client'}`}>
+              <span className="user-greeting">
+                <FaUser className="button-icon" /> {userData.prenom}
+              </span>
+              
+              {userProfileOpen && (
+                <div className="user-dropdown">
+                  <Link 
+                    to={userData.role === 'vendeur' ? '/profil-vendeur' : '/profil-client'} 
+                    className="dropdown-item"
+                  >
+                    <FaUser className="dropdown-icon" /> Mon Profil
+                  </Link>
+                  
+                  {userData.role === 'vendeur' && (
                     <Link to="/vendeur-dashboard" className="dropdown-item">
                       <FaCog className="dropdown-icon" /> Tableau de bord
                     </Link>
-                
-                  </>
-                )}
-                
-                <div className="dropdown-divider"></div>
-                
-                <button onClick={handleLogout} className="dropdown-item logout-item">
-                  <FaSignOutAlt className="dropdown-icon" /> Déconnexion
-                </button>
-              </div>
-            )}
+                  )}
+                  
+                  <div className="dropdown-divider"></div>
+                  
+                  <button onClick={handleLogout} className="dropdown-item logout-item">
+                    <FaSignOutAlt className="dropdown-icon" /> Déconnexion
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
           <>

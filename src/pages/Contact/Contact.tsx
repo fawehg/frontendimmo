@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { FaMapMarkerAlt, FaEnvelope, FaPhone, FaFacebook, FaInstagram, FaLinkedin } from "react-icons/fa";
 import axios from "axios";
-import Header from "../Header";
-import Footer from "../Footer";
+import Header from "../../Header";
+import Footer from "../../Footer";
 import "./Contact.css";
 
 const Contact: React.FC = () => {

@@ -2,20 +2,16 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import "./DetailMaison.css";
+import "./DetailTerrain.css";
 import Header from "../../Header";
 import Footer from "../../Footer";
 import {
-  FaBed,
   FaRulerCombined,
   FaMapMarkerAlt,
   FaArrowLeft,
   FaHome,
   FaBuilding,
   FaCity,
-  FaCalendarAlt,
-  FaTree,
-  FaChair,
   FaHeart,
   FaShare,
   FaPhone,
@@ -26,31 +22,33 @@ import {
   FaArrowLeft as FaArrowLeftIcon,
   FaStreetView,
   FaUser,
+  FaLayerGroup,
 } from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
 
-interface Maison {
+interface Image {
+  url: string;
+  path: string;
+}
+
+interface Terrain {
   id: number;
-  type_transaction_id: number;
-  categorie_id: number;
-  ville_id: number;
-  delegation_id: number;
-  adresse: string;
   titre: string;
   description: string;
   prix: number;
   superficie: number;
-  nombre_chambres: number;
-  nombre_pieces: number;
-  annee_construction: number;
-  environnement_id: number | null;
-  meuble: boolean;
-  images: string[];
-  type_transaction?: { id: number; nom: string };
-  categorie?: { id: number; nom: string };
-  ville?: { id: number; nom: string };
-  delegation?: { id: number; nom: string };
-  environnement?: { id: number; nom: string };
+  adresse: string;
+  type: string | null;
+  categorie: string | null;
+  ville: string | null;
+  delegation: string | null;
+  type_terrain: string | null;
+  type_sol: string | null;
+  surface_constructible: number | null;
+  permis_construction: boolean;
+  cloture: boolean;
+  images: Image[];
+  created_at: string;
 }
 
 interface SimilarProperty {
@@ -59,9 +57,7 @@ interface SimilarProperty {
   prix: number;
   adresse: string;
   ville: string;
-  nombre_chambres: number;
   superficie: number;
-  nombre_pieces: number;
   image: string;
 }
 
@@ -110,9 +106,9 @@ const CercleProgression: React.FC<{
   );
 };
 
-const DetailMaison = () => {
+const DetailTerrain = () => {
   const { id } = useParams<{ id: string }>();
-  const [maison, setMaison] = useState<Maison | null>(null);
+  const [terrain, setTerrain] = useState<Terrain | null>(null);
   const [similarProperties, setSimilarProperties] = useState<SimilarProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -123,7 +119,7 @@ const DetailMaison = () => {
   const [showVirtualTour, setShowVirtualTour] = useState(false);
 
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [carouselScrollPosition, setCarouselScrollPosition] = useState(0);
+  const [, setCarouselScrollPosition] = useState(0);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
@@ -131,20 +127,67 @@ const DetailMaison = () => {
   const y = useTransform(scrollYProgress, [0, 1], [0, -150]);
   const bgGradient = useTransform(scrollYProgress, [0, 1], [0, 90]);
 
+  const defaultImage = "https://via.placeholder.com/800x450?text=Image+non+disponible";
+
   useEffect(() => {
-    const fetchMaison = async () => {
+    const fetchTerrain = async () => {
       try {
-        const response = await axios.get<Maison>(`http://localhost:8000/api/maisons/${id}`);
-        setMaison(response.data);
+        const response = await axios.get<Terrain>(`http://localhost:8000/api/terrains/${id}`);
+        console.log("API Response:", response.data);
+        const terrainData = response.data;
+
+        // Validate images
+        if (!terrainData.images || !Array.isArray(terrainData.images)) {
+          console.warn("Images field is invalid or not an array:", terrainData.images);
+          terrainData.images = [];
+        } else {
+          terrainData.images = terrainData.images.filter(
+            (img) => img && typeof img === "object" && img.url && typeof img.url === "string"
+          );
+        }
+
+        console.log("Normalized Images:", terrainData.images);
+        setTerrain(terrainData);
         setLoading(false);
 
-    
+        // Mock similar properties
+        const mockSimilarProperties: SimilarProperty[] = [
+          {
+            id: 1,
+            titre: "Terrain constructible à Sousse",
+            prix: 150000,
+            adresse: "Sousse",
+            ville: "Tunisie",
+            superficie: 500,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 2,
+            titre: "Terrain agricole à Tunis",
+            prix: 200000,
+            adresse: "Tunis",
+            ville: "Tunisie",
+            superficie: 1000,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 3,
+            titre: "Terrain résidentiel à Hammamet",
+            prix: 300000,
+            adresse: "Hammamet",
+            ville: "Tunisie",
+            superficie: 800,
+            image: "https://via.placeholder.com/300x200",
+          },
+        ];
+        setSimilarProperties(mockSimilarProperties);
       } catch (err) {
-        setError("Impossible de charger les détails de la propriété");
+        console.error("Error fetching Terrain:", err);
+        setError("Impossible de charger les détails du terrain");
         setLoading(false);
       }
     };
-    fetchMaison();
+    fetchTerrain();
   }, [id]);
 
   const handleThumbnailClick = (index: number) => {
@@ -165,15 +208,15 @@ const DetailMaison = () => {
   };
 
   const navigateFullScreen = (direction: "prev" | "next") => {
-    if (!maison) return;
+    if (!terrain || !terrain.images.length) return;
 
     if (direction === "prev") {
       setCurrentFullScreenIndex((prev) =>
-        prev === 0 ? maison.images.length - 1 : prev - 1
+        prev === 0 ? terrain.images.length - 1 : prev - 1
       );
     } else {
       setCurrentFullScreenIndex((prev) =>
-        prev === maison.images.length - 1 ? 0 : prev + 1
+        prev === terrain.images.length - 1 ? 0 : prev + 1
       );
     }
   };
@@ -208,7 +251,7 @@ const DetailMaison = () => {
         exit={{ opacity: 0 }}
       >
         <div className="spinner-chargement"></div>
-        <p>Chargement de la propriété...</p>
+        <p>Chargement du terrain...</p>
       </motion.div>
     );
 
@@ -229,7 +272,7 @@ const DetailMaison = () => {
       </motion.div>
     );
 
-  if (!maison)
+  if (!terrain)
     return (
       <motion.div
         className="ecran-non-trouve"
@@ -237,8 +280,8 @@ const DetailMaison = () => {
         animate={{ opacity: 1 }}
       >
         <div className="contenu-non-trouve">
-          <h3>Propriété non trouvée</h3>
-          <p>La propriété que vous recherchez n'existe pas ou a été supprimée.</p>
+          <h3>Terrain non trouvé</h3>
+          <p>Le terrain que vous recherchez n'existe pas ou a été supprimé.</p>
           <Link to="/" className="bouton-retour-accueil">
             <FaArrowLeft /> Retour à l'accueil
           </Link>
@@ -246,8 +289,10 @@ const DetailMaison = () => {
       </motion.div>
     );
 
+  const hasImages = terrain.images && terrain.images.length > 0;
+
   return (
-    <div className="detail-maison">
+    <div className="detail-terrain">
       <Header />
 
       {/* Section Héros Parallaxe */}
@@ -262,7 +307,7 @@ const DetailMaison = () => {
         <div
           className="fond-parallaxe"
           style={{
-            backgroundImage: `url(http://localhost:8000/storage/${maison.images[0]})`,
+            backgroundImage: `url(${hasImages ? terrain.images[0]?.url : defaultImage})`,
             backgroundAttachment: "fixed",
           }}
         />
@@ -276,9 +321,9 @@ const DetailMaison = () => {
           >
             <Link to="/">Accueil</Link>
             <IoIosArrowForward />
-            <Link to="/maisons">Propriétés</Link>
+            <Link to="/terrains">Terrains</Link>
             <IoIosArrowForward />
-            <span>{maison.titre}</span>
+            <span>{terrain.titre}</span>
           </motion.div>
 
           <motion.h1
@@ -287,7 +332,7 @@ const DetailMaison = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
           >
-            {maison.titre}
+            {terrain.titre}
           </motion.h1>
 
           <motion.div
@@ -298,8 +343,8 @@ const DetailMaison = () => {
           >
             <FaMapMarkerAlt />
             <span>
-              {maison.adresse}, {maison.ville?.nom || "Non défini"} -{" "}
-              {maison.delegation?.nom || "Non défini"}
+              {terrain.adresse}, {terrain.ville || "Non défini"} -{" "}
+              {terrain.delegation || "Non défini"}
             </span>
           </motion.div>
 
@@ -341,10 +386,8 @@ const DetailMaison = () => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 1.1, duration: 0.8, ease: "backOut" }}
         >
-          <span className="prix">{maison.prix.toLocaleString()} TND</span>
-          {maison.type_transaction?.nom && (
-            <span className="type-transaction">{maison.type_transaction.nom}</span>
-          )}
+          <span className="prix">{terrain.prix.toLocaleString()} TND</span>
+          <span className="type-transaction">{terrain.type || "Non défini"}</span>
         </motion.div>
       </motion.section>
 
@@ -359,75 +402,94 @@ const DetailMaison = () => {
       <section className="section-galerie">
         <div className="conteneur-galerie">
           <div className="galerie-principale">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeImageIndex}
-                className="conteneur-image-principale"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.5 }}
-              >
-                <motion.img
-                  src={`http://localhost:8000/storage/${maison.images[activeImageIndex]}`}
-                  alt={`${maison.titre} ${activeImageIndex + 1}`}
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
-                />
-                <motion.button
-                  className="bouton-agrandir"
-                  onClick={() => openFullScreen(activeImageIndex)}
-                  whileHover={{ scale: 1.1, rotate: 90 }}
+            {hasImages ? (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeImageIndex}
+                  className="conteneur-image-principale"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  <FaExpand />
+                  <motion.img
+                    src={terrain.images[activeImageIndex]?.url || defaultImage}
+                    alt={`${terrain.titre} ${activeImageIndex + 1}`}
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                    onError={(e) => {
+                      console.warn(`Failed to load image: ${terrain.images[activeImageIndex]?.url}`);
+                      e.currentTarget.src = defaultImage;
+                    }}
+                  />
+                  <motion.button
+                    className="bouton-agrandir"
+                    onClick={() => openFullScreen(activeImageIndex)}
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                  >
+                    <FaExpand />
+                  </motion.button>
+                </motion.div>
+              </AnimatePresence>
+            ) : (
+              <div className="no-images">
+                <p>Aucune image disponible</p>
+                <img src={defaultImage} alt="Placeholder" />
+              </div>
+            )}
+
+            {hasImages && (
+              <div className="controles-galerie">
+                <motion.button
+                  className="bouton-nav precedent"
+                  onClick={() =>
+                    handleThumbnailClick(
+                      activeImageIndex === 0 ? terrain.images.length - 1 : activeImageIndex - 1
+                    )
+                  }
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {"<"}
                 </motion.button>
-              </motion.div>
-            </AnimatePresence>
+                <motion.button
+                  className="bouton-nav suivant"
+                  onClick={() =>
+                    handleThumbnailClick(
+                      activeImageIndex === terrain.images.length - 1 ? 0 : activeImageIndex + 1
+                    )
+                  }
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {">"}
+                </motion.button>
+              </div>
+            )}
+          </div>
 
-            <div className="controles-galerie">
-              <motion.button
-                className="bouton-nav precedent"
-                onClick={() =>
-                  handleThumbnailClick(
-                    activeImageIndex === 0 ? maison.images.length - 1 : activeImageIndex - 1
-                  )
-                }
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {"<"}
-              </motion.button>
-              <motion.button
-                className="bouton-nav suivant"
-                onClick={() =>
-                  handleThumbnailClick(
-                    activeImageIndex === maison.images.length - 1 ? 0 : activeImageIndex + 1
-                  )
-                }
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {">"}
-              </motion.button>
+          {hasImages && (
+            <div className="defileur-miniatures">
+              {terrain.images.map((image, index) => (
+                <motion.div
+                  key={index}
+                  className={`conteneur-miniature ${index === activeImageIndex ? "actif" : ""}`}
+                  onClick={() => handleThumbnailClick(index)}
+                  whileHover={{ scale: 1.1, boxShadow: "0 0 10px rgba(212, 175, 55, 0.5)" }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <img
+                    src={image.url || defaultImage}
+                    alt={`Miniature ${index + 1}`}
+                    onError={(e) => {
+                      console.warn(`Failed to load thumbnail: ${image.url}`);
+                      e.currentTarget.src = defaultImage;
+                    }}
+                  />
+                </motion.div>
+              ))}
             </div>
-          </div>
-
-          <div className="defileur-miniatures">
-            {maison.images.map((image, index) => (
-              <motion.div
-                key={index}
-                className={`conteneur-miniature ${index === activeImageIndex ? "actif" : ""}`}
-                onClick={() => handleThumbnailClick(index)}
-                whileHover={{ scale: 1.1, boxShadow: "0 0 10px rgba(212, 175, 55, 0.5)" }}
-                transition={{ duration: 0.3 }}
-              >
-                <img
-                  src={`http://localhost:8000/storage/${image}`}
-                  alt={`Miniature ${index + 1}`}
-                />
-              </motion.div>
-            ))}
-          </div>
+          )}
         </div>
       </section>
 
@@ -438,8 +500,8 @@ const DetailMaison = () => {
         <div className="ligne-separateur"></div>
       </div>
 
-      {/* Section Détails Propriété */}
-      <section className="section-details-propriete">
+      {/* Section Détails Terrain */}
+      <section className="section-details-terrain">
         <div className="grille-details">
           {/* Carte Description */}
           <motion.div
@@ -465,7 +527,7 @@ const DetailMaison = () => {
               </div>
               <div className="contenu-description">
                 <div className="texte-riche">
-                  {maison.description.split("\n").map((paragraph, i) => (
+                  {terrain.description.split("\n").map((paragraph, i) => (
                     <motion.p
                       key={i}
                       initial={{ opacity: 0, x: -20 }}
@@ -478,27 +540,29 @@ const DetailMaison = () => {
                 </div>
                 <div className="caracteristiques-mises-en-valeur">
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🏡</div>
-                    <span>Vue panoramique</span>
+                    <div className="icone-mise-en-valeur">🌳</div>
+                    <span>{terrain.type_terrain || "Type terrain non défini"}</span>
                   </motion.div>
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🌞</div>
-                    <span>Exposition Sud</span>
+                    <div className="icone-mise-en-valeur">🏞️</div>
+                    <span>{terrain.type_sol || "Type sol non défini"}</span>
                   </motion.div>
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🔇</div>
-                    <span>Environnement calme</span>
+                    <div className="icone-mise-en-valeur">🛠️</div>
+                    <span>Permis construction: {terrain.permis_construction ? "Oui" : "Non"}</span>
                   </motion.div>
                 </div>
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Caractéristiques */}
           <motion.div
             className="carte-detail carte-caracteristiques"
@@ -520,26 +584,26 @@ const DetailMaison = () => {
                 <div className="grille-visuelle">
                   <div className="element-visuel">
                     <CercleProgression
-                      value={maison.nombre_chambres * 20}
-                      label="Chambres"
-                      icon={<FaBed />}
-                      count={maison.nombre_chambres}
-                    />
-                  </div>
-                  <div className="element-visuel">
-                    <CercleProgression
-                      value={Math.min(maison.superficie / 2, 100)}
+                      value={Math.min(terrain.superficie / 50, 100)}
                       label="Superficie"
                       icon={<FaRulerCombined />}
-                      count={`${maison.superficie}m²`}
+                      count={`${terrain.superficie}m²`}
                     />
                   </div>
                   <div className="element-visuel">
                     <CercleProgression
-                      value={maison.nombre_pieces * 15}
-                      label="Pièces"
-                      icon={<FaHome />}
-                      count={maison.nombre_pieces}
+                      value={terrain.surface_constructible ? Math.min(terrain.surface_constructible / 50, 100) : 0}
+                      label="Constructible"
+                      icon={<FaBuilding />}
+                      count={terrain.surface_constructible ? `${terrain.surface_constructible}m²` : "N/A"}
+                    />
+                  </div>
+                  <div className="element-visuel">
+                    <CercleProgression
+                      value={terrain.permis_construction ? 100 : 0}
+                      label="Permis"
+                      icon={<FaLayerGroup />}
+                      count={terrain.permis_construction ? "Oui" : "Non"}
                     />
                   </div>
                 </div>
@@ -548,43 +612,65 @@ const DetailMaison = () => {
                 <div className="rangee-caracteristiques">
                   <div className="caracteristique">
                     <div className="icone-caracteristique">
-                      <FaCalendarAlt />
+                      <FaRulerCombined />
                     </div>
                     <div className="info-caracteristique">
-                      <span className="etiquette-caracteristique">Année de construction</span>
-                      <span className="valeur-caracteristique">{maison.annee_construction}</span>
+                      <span className="etiquette-caracteristique">Superficie</span>
+                      <span className="valeur-caracteristique">{terrain.superficie}m²</span>
                     </div>
                   </div>
                   <div className="caracteristique">
                     <div className="icone-caracteristique">
-                      <FaChair />
+                      <FaBuilding />
                     </div>
                     <div className="info-caracteristique">
-                      <span className="etiquette-caracteristique">Meublé</span>
-                      <span className="valeur-caracteristique">{maison.meuble ? "Oui" : "Non"}</span>
+                      <span className="etiquette-caracteristique">Surface constructible</span>
+                      <span className="valeur-caracteristique">{terrain.surface_constructible ? `${terrain.surface_constructible}m²` : "Non spécifié"}</span>
                     </div>
                   </div>
                 </div>
-                {maison.environnement && (
-                  <div className="caracteristique pleine-largeur">
+                <div className="rangee-caracteristiques">
+                  <div className="caracteristique">
                     <div className="icone-caracteristique">
-                      <FaTree />
+                      <FaLayerGroup />
                     </div>
                     <div className="info-caracteristique">
-                      <span className="etiquette-caracteristique">Environnement</span>
-                      <span className="valeur-caracteristique">{maison.environnement.nom}</span>
+                      <span className="etiquette-caracteristique">Permis de construction</span>
+                      <span className="valeur-caracteristique">{terrain.permis_construction ? "Oui" : "Non"}</span>
                     </div>
                   </div>
-                )}
+                  <div className="caracteristique">
+                    <div className="icone-caracteristique">
+                      <FaHome />
+                    </div>
+                    <div className="info-caracteristique">
+                      <span className="etiquette-caracteristique">Clôture</span>
+                      <span className="valeur-caracteristique">{terrain.cloture ? "Oui" : "Non"}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="rangee-caracteristiques">
+                  <div className="caracteristique pleine-largeur">
+                    <div className="icone-caracteristique">
+                      <FaCity />
+                    </div>
+                    <div className="info-caracteristique">
+                      <span className="etiquette-caracteristique">Type de terrain</span>
+                      <span className="valeur-caracteristique">{terrain.type_terrain || "Non spécifié"}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Info */}
           <motion.div
             className="carte-detail carte-info"
@@ -605,7 +691,7 @@ const DetailMaison = () => {
               <div className="mini-carte">
                 <div className="apercu-carte">
                   <iframe
-                    src={`https://maps.google.com/maps?q=${maison.ville?.nom},${maison.delegation?.nom}&output=embed`}
+                    src={`https://maps.google.com/maps?q=${terrain.ville || "Tunisie"},${terrain.delegation || "Tunisie"}&output=embed`}
                     frameBorder="0"
                     allowFullScreen
                   ></iframe>
@@ -613,7 +699,7 @@ const DetailMaison = () => {
                 <div className="superposition-carte">
                   <FaMapMarkerAlt className="pin-carte" />
                   <div className="infobulle-carte">
-                    {maison.adresse}, {maison.ville?.nom}
+                    {terrain.adresse}, {terrain.ville || "Non défini"}
                   </div>
                 </div>
               </div>
@@ -624,7 +710,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="texte-info">
                     <h4>Type de transaction</h4>
-                    <p>{maison.type_transaction?.nom || "Non spécifié"}</p>
+                    <p>{terrain.type || "Non spécifié"}</p>
                   </div>
                 </div>
                 <div className="element-info">
@@ -633,7 +719,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="texte-info">
                     <h4>Catégorie</h4>
-                    <p>{maison.categorie?.nom || "Non spécifié"}</p>
+                    <p>{terrain.categorie || "Non spécifié"}</p>
                   </div>
                 </div>
                 <div className="element-info">
@@ -643,19 +729,30 @@ const DetailMaison = () => {
                   <div className="texte-info">
                     <h4>Localisation</h4>
                     <p>
-                      {maison.delegation?.nom}, {maison.ville?.nom}
+                      {terrain.delegation || "Non spécifié"}, {terrain.ville || "Non spécifié"}
                     </p>
+                  </div>
+                </div>
+                <div className="element-info">
+                  <div className="icone-info">
+                    <FaCity />
+                  </div>
+                  <div className="texte-info">
+                    <h4>Type de sol</h4>
+                    <p>{terrain.type_sol || "Non spécifié"}</p>
                   </div>
                 </div>
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Contact */}
           <motion.div
             className="carte-detail carte-contact"
@@ -784,14 +881,16 @@ const DetailMaison = () => {
           </motion.div>
         </div>
       </section>
+
       {/* Séparateur de Section */}
       <div className="separateur-section">
         <div className="ligne-separateur"></div>
         <div className="diamant-separateur"></div>
         <div className="ligne-separateur"></div>
       </div>
-      {/* Section Propriétés Similaires */}
-      <section className="section-proprietes-similaires">
+
+      {/* Section Terrains Similaires */}
+      <section className="section-terrains-similaires">
         <motion.div
           className="entete-section"
           initial={{ opacity: 0 }}
@@ -799,9 +898,9 @@ const DetailMaison = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2>Propriétés Similaires</h2>
-          <Link to="/maisons" className="voir-tout">
-            Voir toutes <IoIosArrowForward />
+          <h2>Terrains Similaires</h2>
+          <Link to="/terrains" className="voir-tout">
+            Voir tous <IoIosArrowForward />
           </Link>
         </motion.div>
 
@@ -816,11 +915,11 @@ const DetailMaison = () => {
               <FaArrowLeftIcon />
             </motion.button>
           )}
-          <div className="carrousel-proprietes" ref={carouselRef}>
+          <div className="carrousel-terrains" ref={carouselRef}>
             {similarProperties.map((property, index) => (
               <motion.div
                 key={property.id}
-                className="carte-propriete"
+                className="carte-terrain"
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.2 }}
@@ -832,29 +931,23 @@ const DetailMaison = () => {
                   boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
                 }}
               >
-                <div className="image-propriete">
+                <div className="image-terrain">
                   <motion.img
                     src={property.image}
                     alt={property.titre}
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.3 }}
                   />
-                  <span className="prix-propriete">{property.prix.toLocaleString()} TND</span>
+                  <span className="prix-terrain">{property.prix.toLocaleString()} TND</span>
                 </div>
-                <div className="details-propriete">
+                <div className="details-terrain">
                   <h3>{property.titre}</h3>
-                  <p className="localisation-propriete">
+                  <p className="localisation-terrain">
                     <FaMapMarkerAlt /> {property.adresse}, {property.ville}
                   </p>
-                  <div className="caracteristiques-propriete">
-                    <span>
-                      <FaBed /> {property.nombre_chambres}
-                    </span>
+                  <div className="caracteristiques-terrain">
                     <span>
                       <FaRulerCombined /> {property.superficie}m²
-                    </span>
-                    <span>
-                      <FaHome /> {property.nombre_pieces}
                     </span>
                   </div>
                 </div>
@@ -876,7 +969,7 @@ const DetailMaison = () => {
 
       {/* Visionneuse Plein Écran */}
       <AnimatePresence>
-        {showFullScreen && (
+        {showFullScreen && hasImages && (
           <motion.div
             className="visionneuse-plein-ecran"
             initial={{ opacity: 0 }}
@@ -893,11 +986,15 @@ const DetailMaison = () => {
 
             <div className="conteneur-image-plein-ecran">
               <motion.img
-                src={`http://localhost:8000/storage/${maison.images[currentFullScreenIndex]}`}
+                src={terrain.images[currentFullScreenIndex]?.url || defaultImage}
                 alt={`Plein écran ${currentFullScreenIndex + 1}`}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5 }}
+                onError={(e) => {
+                  console.warn(`Failed to load full-screen image: ${terrain.images[currentFullScreenIndex]?.url}`);
+                  e.currentTarget.src = defaultImage;
+                }}
               />
               <motion.button
                 className="bouton-nav precedent"
@@ -918,15 +1015,19 @@ const DetailMaison = () => {
             </div>
 
             <div className="miniatures-plein-ecran">
-              {maison.images.map((image, index) => (
+              {terrain.images.map((image, index) => (
                 <motion.img
                   key={index}
-                  src={`http://localhost:8000/storage/${image}`}
+                  src={image.url || defaultImage}
                   alt={`Miniature ${index + 1}`}
                   className={index === currentFullScreenIndex ? "actif" : ""}
                   onClick={() => setCurrentFullScreenIndex(index)}
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.3 }}
+                  onError={(e) => {
+                    console.warn(`Failed to load full-screen thumbnail: ${image.url}`);
+                    e.currentTarget.src = defaultImage;
+                  }}
                 />
               ))}
             </div>
@@ -970,4 +1071,4 @@ const DetailMaison = () => {
   );
 };
 
-export default DetailMaison;
+export default DetailTerrain;

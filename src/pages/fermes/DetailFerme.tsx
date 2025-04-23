@@ -2,20 +2,16 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import "./DetailMaison.css";
+import "./DetailFerme.css";
 import Header from "../../Header";
 import Footer from "../../Footer";
 import {
-  FaBed,
   FaRulerCombined,
   FaMapMarkerAlt,
   FaArrowLeft,
   FaHome,
   FaBuilding,
   FaCity,
-  FaCalendarAlt,
-  FaTree,
-  FaChair,
   FaHeart,
   FaShare,
   FaPhone,
@@ -26,31 +22,57 @@ import {
   FaArrowLeft as FaArrowLeftIcon,
   FaStreetView,
   FaUser,
+  FaTree,
+  FaWind,
 } from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
 
-interface Maison {
+interface Image {
+  url: string;
+  path: string;
+}
+
+interface RelatedModel {
   id: number;
-  type_transaction_id: number;
-  categorie_id: number;
-  ville_id: number;
-  delegation_id: number;
-  adresse: string;
+  nom: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface RawFerme {
+  id: number;
   titre: string;
   description: string;
   prix: number;
   superficie: number;
-  nombre_chambres: number;
-  nombre_pieces: number;
-  annee_construction: number;
-  environnement_id: number | null;
-  meuble: boolean;
-  images: string[];
-  type_transaction?: { id: number; nom: string };
-  categorie?: { id: number; nom: string };
-  ville?: { id: number; nom: string };
-  delegation?: { id: number; nom: string };
-  environnement?: { id: number; nom: string };
+  adresse: string;
+  type: RelatedModel | null;
+  categorie: RelatedModel | null;
+  ville: RelatedModel | null;
+  delegation: RelatedModel | null;
+  orientation: RelatedModel | null;
+  environnement: RelatedModel | null;
+  infrastructures: RelatedModel[];
+  images: Image[];
+  created_at: string;
+}
+
+interface Ferme {
+  id: number;
+  titre: string;
+  description: string;
+  prix: number;
+  superficie: number;
+  adresse: string;
+  type: string | null;
+  categorie: string | null;
+  ville: string | null;
+  delegation: string | null;
+  orientation: string | null;
+  environnement: string | null;
+  infrastructures: string[];
+  images: Image[];
+  created_at: string;
 }
 
 interface SimilarProperty {
@@ -59,9 +81,7 @@ interface SimilarProperty {
   prix: number;
   adresse: string;
   ville: string;
-  nombre_chambres: number;
   superficie: number;
-  nombre_pieces: number;
   image: string;
 }
 
@@ -110,9 +130,9 @@ const CercleProgression: React.FC<{
   );
 };
 
-const DetailMaison = () => {
+const DetailFerme = () => {
   const { id } = useParams<{ id: string }>();
-  const [maison, setMaison] = useState<Maison | null>(null);
+  const [ferme, setFerme] = useState<Ferme | null>(null);
   const [similarProperties, setSimilarProperties] = useState<SimilarProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -123,7 +143,7 @@ const DetailMaison = () => {
   const [showVirtualTour, setShowVirtualTour] = useState(false);
 
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [carouselScrollPosition, setCarouselScrollPosition] = useState(0);
+  const [, setCarouselScrollPosition] = useState(0);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
@@ -131,20 +151,85 @@ const DetailMaison = () => {
   const y = useTransform(scrollYProgress, [0, 1], [0, -150]);
   const bgGradient = useTransform(scrollYProgress, [0, 1], [0, 90]);
 
+  const defaultImage = "https://via.placeholder.com/800x450?text=Image+non+disponible";
+
   useEffect(() => {
-    const fetchMaison = async () => {
+    const fetchFerme = async () => {
       try {
-        const response = await axios.get<Maison>(`http://localhost:8000/api/maisons/${id}`);
-        setMaison(response.data);
+        const response = await axios.get<RawFerme>(`http://localhost:8000/api/fermes/${id}`);
+        console.log("API Response:", response.data);
+        const fermeData = response.data;
+
+        // Normalize images
+        if (!fermeData.images || !Array.isArray(fermeData.images)) {
+          console.warn("Images field is invalid or not an array:", fermeData.images);
+          fermeData.images = [];
+        } else {
+          fermeData.images = fermeData.images.filter(
+            (img) => img && typeof img === "object" && img.url && typeof img.url === "string"
+          );
+        }
+
+        // Normalize infrastructures
+        if (!fermeData.infrastructures || !Array.isArray(fermeData.infrastructures)) {
+          console.warn("Infrastructures field is invalid or not an array:", fermeData.infrastructures);
+          fermeData.infrastructures = [];
+        }
+
+        // Normalize to Ferme interface
+        const normalizedFerme: Ferme = {
+          ...fermeData,
+          type: fermeData.type ? fermeData.type.nom : null,
+          categorie: fermeData.categorie ? fermeData.categorie.nom : null,
+          ville: fermeData.ville ? fermeData.ville.nom : null,
+          delegation: fermeData.delegation ? fermeData.delegation.nom : null,
+          orientation: fermeData.orientation ? fermeData.orientation.nom : null,
+          environnement: fermeData.environnement ? fermeData.environnement.nom : null,
+          infrastructures: fermeData.infrastructures.map((infra) => infra.nom || "Inconnu"),
+        };
+
+        console.log("Normalized Ferme:", normalizedFerme);
+        setFerme(normalizedFerme);
         setLoading(false);
 
-    
+        // Mock similar properties
+        const mockSimilarProperties: SimilarProperty[] = [
+          {
+            id: 1,
+            titre: "Ferme agricole à Sousse",
+            prix: 250000,
+            adresse: "Sousse",
+            ville: "Tunisie",
+            superficie: 2000,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 2,
+            titre: "Ferme d'élevage à Tunis",
+            prix: 300000,
+            adresse: "Tunis",
+            ville: "Tunisie",
+            superficie: 3000,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 3,
+            titre: "Ferme mixte à Hammamet",
+            prix: 350000,
+            adresse: "Hammamet",
+            ville: "Tunisie",
+            superficie: 2500,
+            image: "https://via.placeholder.com/300x200",
+          },
+        ];
+        setSimilarProperties(mockSimilarProperties);
       } catch (err) {
-        setError("Impossible de charger les détails de la propriété");
+        console.error("Error fetching Ferme:", err);
+        setError("Impossible de charger les détails de la ferme");
         setLoading(false);
       }
     };
-    fetchMaison();
+    fetchFerme();
   }, [id]);
 
   const handleThumbnailClick = (index: number) => {
@@ -165,15 +250,15 @@ const DetailMaison = () => {
   };
 
   const navigateFullScreen = (direction: "prev" | "next") => {
-    if (!maison) return;
+    if (!ferme || !ferme.images.length) return;
 
     if (direction === "prev") {
       setCurrentFullScreenIndex((prev) =>
-        prev === 0 ? maison.images.length - 1 : prev - 1
+        prev === 0 ? ferme.images.length - 1 : prev - 1
       );
     } else {
       setCurrentFullScreenIndex((prev) =>
-        prev === maison.images.length - 1 ? 0 : prev + 1
+        prev === ferme.images.length - 1 ? 0 : prev + 1
       );
     }
   };
@@ -208,7 +293,7 @@ const DetailMaison = () => {
         exit={{ opacity: 0 }}
       >
         <div className="spinner-chargement"></div>
-        <p>Chargement de la propriété...</p>
+        <p>Chargement de la ferme...</p>
       </motion.div>
     );
 
@@ -229,7 +314,7 @@ const DetailMaison = () => {
       </motion.div>
     );
 
-  if (!maison)
+  if (!ferme)
     return (
       <motion.div
         className="ecran-non-trouve"
@@ -237,8 +322,8 @@ const DetailMaison = () => {
         animate={{ opacity: 1 }}
       >
         <div className="contenu-non-trouve">
-          <h3>Propriété non trouvée</h3>
-          <p>La propriété que vous recherchez n'existe pas ou a été supprimée.</p>
+          <h3>Ferme non trouvée</h3>
+          <p>La ferme que vous recherchez n'existe pas ou a été supprimée.</p>
           <Link to="/" className="bouton-retour-accueil">
             <FaArrowLeft /> Retour à l'accueil
           </Link>
@@ -246,8 +331,10 @@ const DetailMaison = () => {
       </motion.div>
     );
 
+  const hasImages = ferme.images && ferme.images.length > 0;
+
   return (
-    <div className="detail-maison">
+    <div className="detail-ferme">
       <Header />
 
       {/* Section Héros Parallaxe */}
@@ -262,7 +349,7 @@ const DetailMaison = () => {
         <div
           className="fond-parallaxe"
           style={{
-            backgroundImage: `url(http://localhost:8000/storage/${maison.images[0]})`,
+            backgroundImage: `url(${hasImages ? ferme.images[0]?.url : defaultImage})`,
             backgroundAttachment: "fixed",
           }}
         />
@@ -276,9 +363,9 @@ const DetailMaison = () => {
           >
             <Link to="/">Accueil</Link>
             <IoIosArrowForward />
-            <Link to="/maisons">Propriétés</Link>
+            <Link to="/fermes">Fermes</Link>
             <IoIosArrowForward />
-            <span>{maison.titre}</span>
+            <span>{ferme.titre}</span>
           </motion.div>
 
           <motion.h1
@@ -287,7 +374,7 @@ const DetailMaison = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
           >
-            {maison.titre}
+            {ferme.titre}
           </motion.h1>
 
           <motion.div
@@ -298,8 +385,8 @@ const DetailMaison = () => {
           >
             <FaMapMarkerAlt />
             <span>
-              {maison.adresse}, {maison.ville?.nom || "Non défini"} -{" "}
-              {maison.delegation?.nom || "Non défini"}
+              {ferme.adresse}, {ferme.ville || "Non défini"} -{" "}
+              {ferme.delegation || "Non défini"}
             </span>
           </motion.div>
 
@@ -341,10 +428,8 @@ const DetailMaison = () => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 1.1, duration: 0.8, ease: "backOut" }}
         >
-          <span className="prix">{maison.prix.toLocaleString()} TND</span>
-          {maison.type_transaction?.nom && (
-            <span className="type-transaction">{maison.type_transaction.nom}</span>
-          )}
+          <span className="prix">{ferme.prix.toLocaleString()} TND</span>
+          <span className="type-transaction">{ferme.type || "Non défini"}</span>
         </motion.div>
       </motion.section>
 
@@ -359,75 +444,94 @@ const DetailMaison = () => {
       <section className="section-galerie">
         <div className="conteneur-galerie">
           <div className="galerie-principale">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeImageIndex}
-                className="conteneur-image-principale"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.5 }}
-              >
-                <motion.img
-                  src={`http://localhost:8000/storage/${maison.images[activeImageIndex]}`}
-                  alt={`${maison.titre} ${activeImageIndex + 1}`}
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
-                />
-                <motion.button
-                  className="bouton-agrandir"
-                  onClick={() => openFullScreen(activeImageIndex)}
-                  whileHover={{ scale: 1.1, rotate: 90 }}
+            {hasImages ? (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeImageIndex}
+                  className="conteneur-image-principale"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  <FaExpand />
+                  <motion.img
+                    src={ferme.images[activeImageIndex]?.url || defaultImage}
+                    alt={`${ferme.titre} ${activeImageIndex + 1}`}
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                    onError={(e) => {
+                      console.warn(`Failed to load image: ${ferme.images[activeImageIndex]?.url}`);
+                      e.currentTarget.src = defaultImage;
+                    }}
+                  />
+                  <motion.button
+                    className="bouton-agrandir"
+                    onClick={() => openFullScreen(activeImageIndex)}
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                  >
+                    <FaExpand />
+                  </motion.button>
+                </motion.div>
+              </AnimatePresence>
+            ) : (
+              <div className="no-images">
+                <p>Aucune image disponible</p>
+                <img src={defaultImage} alt="Placeholder" />
+              </div>
+            )}
+
+            {hasImages && (
+              <div className="controles-galerie">
+                <motion.button
+                  className="bouton-nav precedent"
+                  onClick={() =>
+                    handleThumbnailClick(
+                      activeImageIndex === 0 ? ferme.images.length - 1 : activeImageIndex - 1
+                    )
+                  }
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {"<"}
                 </motion.button>
-              </motion.div>
-            </AnimatePresence>
+                <motion.button
+                  className="bouton-nav suivant"
+                  onClick={() =>
+                    handleThumbnailClick(
+                      activeImageIndex === ferme.images.length - 1 ? 0 : activeImageIndex + 1
+                    )
+                  }
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {">"}
+                </motion.button>
+              </div>
+            )}
+          </div>
 
-            <div className="controles-galerie">
-              <motion.button
-                className="bouton-nav precedent"
-                onClick={() =>
-                  handleThumbnailClick(
-                    activeImageIndex === 0 ? maison.images.length - 1 : activeImageIndex - 1
-                  )
-                }
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {"<"}
-              </motion.button>
-              <motion.button
-                className="bouton-nav suivant"
-                onClick={() =>
-                  handleThumbnailClick(
-                    activeImageIndex === maison.images.length - 1 ? 0 : activeImageIndex + 1
-                  )
-                }
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {">"}
-              </motion.button>
+          {hasImages && (
+            <div className="defileur-miniatures">
+              {ferme.images.map((image, index) => (
+                <motion.div
+                  key={index}
+                  className={`conteneur-miniature ${index === activeImageIndex ? "actif" : ""}`}
+                  onClick={() => handleThumbnailClick(index)}
+                  whileHover={{ scale: 1.1, boxShadow: "0 0 10px rgba(212, 175, 55, 0.5)" }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <img
+                    src={image.url || defaultImage}
+                    alt={`Miniature ${index + 1}`}
+                    onError={(e) => {
+                      console.warn(`Failed to load thumbnail: ${image.url}`);
+                      e.currentTarget.src = defaultImage;
+                    }}
+                  />
+                </motion.div>
+              ))}
             </div>
-          </div>
-
-          <div className="defileur-miniatures">
-            {maison.images.map((image, index) => (
-              <motion.div
-                key={index}
-                className={`conteneur-miniature ${index === activeImageIndex ? "actif" : ""}`}
-                onClick={() => handleThumbnailClick(index)}
-                whileHover={{ scale: 1.1, boxShadow: "0 0 10px rgba(212, 175, 55, 0.5)" }}
-                transition={{ duration: 0.3 }}
-              >
-                <img
-                  src={`http://localhost:8000/storage/${image}`}
-                  alt={`Miniature ${index + 1}`}
-                />
-              </motion.div>
-            ))}
-          </div>
+          )}
         </div>
       </section>
 
@@ -438,8 +542,8 @@ const DetailMaison = () => {
         <div className="ligne-separateur"></div>
       </div>
 
-      {/* Section Détails Propriété */}
-      <section className="section-details-propriete">
+      {/* Section Détails Ferme */}
+      <section className="section-details-ferme">
         <div className="grille-details">
           {/* Carte Description */}
           <motion.div
@@ -460,12 +564,12 @@ const DetailMaison = () => {
             <div className="contenu-carte">
               <div className="onglets-description">
                 <button className="onglet actif">Description</button>
-                <button className="onglet">Détails Techniques</button>
+                <button className="onglet">Infrastructures</button>
                 <button className="onglet">Environnement</button>
               </div>
               <div className="contenu-description">
                 <div className="texte-riche">
-                  {maison.description.split("\n").map((paragraph, i) => (
+                  {ferme.description.split("\n").map((paragraph, i) => (
                     <motion.p
                       key={i}
                       initial={{ opacity: 0, x: -20 }}
@@ -478,27 +582,29 @@ const DetailMaison = () => {
                 </div>
                 <div className="caracteristiques-mises-en-valeur">
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🏡</div>
-                    <span>Vue panoramique</span>
+                    <div className="icone-mise-en-valeur">🌍</div>
+                    <span>{ferme.orientation || "Orientation non définie"}</span>
                   </motion.div>
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🌞</div>
-                    <span>Exposition Sud</span>
+                    <div className="icone-mise-en-valeur">🌳</div>
+                    <span>{ferme.environnement || "Environnement non défini"}</span>
                   </motion.div>
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🔇</div>
-                    <span>Environnement calme</span>
+                    <div className="icone-mise-en-valeur">🏭</div>
+                    <span>{ferme.infrastructures.length > 0 ? ferme.infrastructures.join(", ") : "Aucune infrastructure"}</span>
                   </motion.div>
                 </div>
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Caractéristiques */}
           <motion.div
             className="carte-detail carte-caracteristiques"
@@ -520,26 +626,26 @@ const DetailMaison = () => {
                 <div className="grille-visuelle">
                   <div className="element-visuel">
                     <CercleProgression
-                      value={maison.nombre_chambres * 20}
-                      label="Chambres"
-                      icon={<FaBed />}
-                      count={maison.nombre_chambres}
-                    />
-                  </div>
-                  <div className="element-visuel">
-                    <CercleProgression
-                      value={Math.min(maison.superficie / 2, 100)}
+                      value={Math.min(ferme.superficie / 50, 100)}
                       label="Superficie"
                       icon={<FaRulerCombined />}
-                      count={`${maison.superficie}m²`}
+                      count={`${ferme.superficie}m²`}
                     />
                   </div>
                   <div className="element-visuel">
                     <CercleProgression
-                      value={maison.nombre_pieces * 15}
-                      label="Pièces"
-                      icon={<FaHome />}
-                      count={maison.nombre_pieces}
+                      value={ferme.orientation ? 100 : 0}
+                      label="Orientation"
+                      icon={<FaWind />}
+                      count={ferme.orientation || "N/A"}
+                    />
+                  </div>
+                  <div className="element-visuel">
+                    <CercleProgression
+                      value={ferme.infrastructures.length * 20}
+                      label="Infrastructures"
+                      icon={<FaTree />}
+                      count={ferme.infrastructures.length || "0"}
                     />
                   </div>
                 </div>
@@ -548,43 +654,65 @@ const DetailMaison = () => {
                 <div className="rangee-caracteristiques">
                   <div className="caracteristique">
                     <div className="icone-caracteristique">
-                      <FaCalendarAlt />
+                      <FaRulerCombined />
                     </div>
                     <div className="info-caracteristique">
-                      <span className="etiquette-caracteristique">Année de construction</span>
-                      <span className="valeur-caracteristique">{maison.annee_construction}</span>
+                      <span className="etiquette-caracteristique">Superficie</span>
+                      <span className="valeur-caracteristique">{ferme.superficie}m²</span>
                     </div>
                   </div>
                   <div className="caracteristique">
                     <div className="icone-caracteristique">
-                      <FaChair />
+                      <FaWind />
                     </div>
                     <div className="info-caracteristique">
-                      <span className="etiquette-caracteristique">Meublé</span>
-                      <span className="valeur-caracteristique">{maison.meuble ? "Oui" : "Non"}</span>
+                      <span className="etiquette-caracteristique">Orientation</span>
+                      <span className="valeur-caracteristique">{ferme.orientation || "Non spécifié"}</span>
                     </div>
                   </div>
                 </div>
-                {maison.environnement && (
-                  <div className="caracteristique pleine-largeur">
+                <div className="rangee-caracteristiques">
+                  <div className="caracteristique">
                     <div className="icone-caracteristique">
                       <FaTree />
                     </div>
                     <div className="info-caracteristique">
                       <span className="etiquette-caracteristique">Environnement</span>
-                      <span className="valeur-caracteristique">{maison.environnement.nom}</span>
+                      <span className="valeur-caracteristique">{ferme.environnement || "Non spécifié"}</span>
                     </div>
                   </div>
-                )}
+                  <div className="caracteristique">
+                    <div className="icone-caracteristique">
+                      <FaHome />
+                    </div>
+                    <div className="info-caracteristique">
+                      <span className="etiquette-caracteristique">Infrastructures</span>
+                      <span className="valeur-caracteristique">{ferme.infrastructures.length > 0 ? ferme.infrastructures.join(", ") : "Aucune"}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="rangee-caracteristiques">
+                  <div className="caracteristique pleine-largeur">
+                    <div className="icone-caracteristique">
+                      <FaCity />
+                    </div>
+                    <div className="info-caracteristique">
+                      <span className="etiquette-caracteristique">Type de ferme</span>
+                      <span className="valeur-caracteristique">{ferme.categorie || "Non spécifié"}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Info */}
           <motion.div
             className="carte-detail carte-info"
@@ -605,7 +733,7 @@ const DetailMaison = () => {
               <div className="mini-carte">
                 <div className="apercu-carte">
                   <iframe
-                    src={`https://maps.google.com/maps?q=${maison.ville?.nom},${maison.delegation?.nom}&output=embed`}
+                    src={`https://maps.google.com/maps?q=${ferme.ville || "Tunisie"},${ferme.delegation || "Tunisie"}&output=embed`}
                     frameBorder="0"
                     allowFullScreen
                   ></iframe>
@@ -613,7 +741,7 @@ const DetailMaison = () => {
                 <div className="superposition-carte">
                   <FaMapMarkerAlt className="pin-carte" />
                   <div className="infobulle-carte">
-                    {maison.adresse}, {maison.ville?.nom}
+                    {ferme.adresse}, {ferme.ville || "Non défini"}
                   </div>
                 </div>
               </div>
@@ -624,7 +752,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="texte-info">
                     <h4>Type de transaction</h4>
-                    <p>{maison.type_transaction?.nom || "Non spécifié"}</p>
+                    <p>{ferme.type || "Non spécifié"}</p>
                   </div>
                 </div>
                 <div className="element-info">
@@ -633,7 +761,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="texte-info">
                     <h4>Catégorie</h4>
-                    <p>{maison.categorie?.nom || "Non spécifié"}</p>
+                    <p>{ferme.categorie || "Non spécifié"}</p>
                   </div>
                 </div>
                 <div className="element-info">
@@ -643,19 +771,30 @@ const DetailMaison = () => {
                   <div className="texte-info">
                     <h4>Localisation</h4>
                     <p>
-                      {maison.delegation?.nom}, {maison.ville?.nom}
+                      {ferme.delegation || "Non spécifié"}, {ferme.ville || "Non spécifié"}
                     </p>
+                  </div>
+                </div>
+                <div className="element-info">
+                  <div className="icone-info">
+                    <FaTree />
+                  </div>
+                  <div className="texte-info">
+                    <h4>Environnement</h4>
+                    <p>{ferme.environnement || "Non spécifié"}</p>
                   </div>
                 </div>
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Contact */}
           <motion.div
             className="carte-detail carte-contact"
@@ -675,22 +814,22 @@ const DetailMaison = () => {
             <div className="contenu-carte">
               <div className="profil-agent">
                 <div className="photo-agent">
-                  <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Agent" />
+                  <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Agent" />
                   <div className="badge-agent">
-                    <span>⭐ 4.9/5</span>
+                    <span>⭐ 4.8/5</span>
                   </div>
                 </div>
                 <div className="details-agent">
-                  <h3>Sophie Martin</h3>
-                  <p className="titre-agent">Agent Immobilier Senior</p>
-                  <p className="experience-agent">10+ ans d'expérience</p>
+                  <h3>Ahmed Ben Salah</h3>
+                  <p className="titre-agent">Agent Immobilier Agricole</p>
+                  <p className="experience-agent">8+ ans d'expérience</p>
                   <div className="stats-agent">
                     <div className="stat">
-                      <span>50+</span>
+                      <span>40+</span>
                       <small>Transactions</small>
                     </div>
                     <div className="stat">
-                      <span>98%</span>
+                      <span>95%</span>
                       <small>Satisfaction</small>
                     </div>
                   </div>
@@ -704,7 +843,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="info-methode">
                     <h4>Appelez-moi</h4>
-                    <p>+216 12 345 678</p>
+                    <p>+216 98 765 432</p>
                   </div>
                 </motion.div>
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
@@ -722,7 +861,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="info-methode">
                     <h4>Email</h4>
-                    <p>sophie@immobilier.tn</p>
+                    <p>ahmed@immobilier.tn</p>
                   </div>
                 </motion.div>
               </div>
@@ -784,14 +923,16 @@ const DetailMaison = () => {
           </motion.div>
         </div>
       </section>
+
       {/* Séparateur de Section */}
       <div className="separateur-section">
         <div className="ligne-separateur"></div>
         <div className="diamant-separateur"></div>
         <div className="ligne-separateur"></div>
       </div>
-      {/* Section Propriétés Similaires */}
-      <section className="section-proprietes-similaires">
+
+      {/* Section Fermes Similaires */}
+      <section className="section-fermes-similaires">
         <motion.div
           className="entete-section"
           initial={{ opacity: 0 }}
@@ -799,9 +940,9 @@ const DetailMaison = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2>Propriétés Similaires</h2>
-          <Link to="/maisons" className="voir-tout">
-            Voir toutes <IoIosArrowForward />
+          <h2>Fermes Similaires</h2>
+          <Link to="/fermes" className="voir-tout">
+            Voir tous <IoIosArrowForward />
           </Link>
         </motion.div>
 
@@ -816,11 +957,11 @@ const DetailMaison = () => {
               <FaArrowLeftIcon />
             </motion.button>
           )}
-          <div className="carrousel-proprietes" ref={carouselRef}>
+          <div className="carrousel-fermes" ref={carouselRef}>
             {similarProperties.map((property, index) => (
               <motion.div
                 key={property.id}
-                className="carte-propriete"
+                className="carte-ferme"
                 initial={{ opacity: 0, x: 50 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.2 }}
@@ -832,29 +973,23 @@ const DetailMaison = () => {
                   boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
                 }}
               >
-                <div className="image-propriete">
+                <div className="image-ferme">
                   <motion.img
                     src={property.image}
                     alt={property.titre}
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.3 }}
                   />
-                  <span className="prix-propriete">{property.prix.toLocaleString()} TND</span>
+                  <span className="prix-ferme">{property.prix.toLocaleString()} TND</span>
                 </div>
-                <div className="details-propriete">
+                <div className="details-ferme">
                   <h3>{property.titre}</h3>
-                  <p className="localisation-propriete">
+                  <p className="localisation-ferme">
                     <FaMapMarkerAlt /> {property.adresse}, {property.ville}
                   </p>
-                  <div className="caracteristiques-propriete">
-                    <span>
-                      <FaBed /> {property.nombre_chambres}
-                    </span>
+                  <div className="caracteristiques-ferme">
                     <span>
                       <FaRulerCombined /> {property.superficie}m²
-                    </span>
-                    <span>
-                      <FaHome /> {property.nombre_pieces}
                     </span>
                   </div>
                 </div>
@@ -876,7 +1011,7 @@ const DetailMaison = () => {
 
       {/* Visionneuse Plein Écran */}
       <AnimatePresence>
-        {showFullScreen && (
+        {showFullScreen && hasImages && (
           <motion.div
             className="visionneuse-plein-ecran"
             initial={{ opacity: 0 }}
@@ -893,11 +1028,15 @@ const DetailMaison = () => {
 
             <div className="conteneur-image-plein-ecran">
               <motion.img
-                src={`http://localhost:8000/storage/${maison.images[currentFullScreenIndex]}`}
+                src={ferme.images[currentFullScreenIndex]?.url || defaultImage}
                 alt={`Plein écran ${currentFullScreenIndex + 1}`}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5 }}
+                onError={(e) => {
+                  console.warn(`Failed to load full-screen image: ${ferme.images[currentFullScreenIndex]?.url}`);
+                  e.currentTarget.src = defaultImage;
+                }}
               />
               <motion.button
                 className="bouton-nav precedent"
@@ -918,15 +1057,19 @@ const DetailMaison = () => {
             </div>
 
             <div className="miniatures-plein-ecran">
-              {maison.images.map((image, index) => (
+              {ferme.images.map((image, index) => (
                 <motion.img
                   key={index}
-                  src={`http://localhost:8000/storage/${image}`}
+                  src={image.url || defaultImage}
                   alt={`Miniature ${index + 1}`}
                   className={index === currentFullScreenIndex ? "actif" : ""}
                   onClick={() => setCurrentFullScreenIndex(index)}
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.3 }}
+                  onError={(e) => {
+                    console.warn(`Failed to load full-screen thumbnail: ${image.url}`);
+                    e.currentTarget.src = defaultImage;
+                  }}
                 />
               ))}
             </div>
@@ -970,4 +1113,4 @@ const DetailMaison = () => {
   );
 };
 
-export default DetailMaison;
+export default DetailFerme;

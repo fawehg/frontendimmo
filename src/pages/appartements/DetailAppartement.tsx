@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import "./DetailMaison.css";
+import "./DetailAppartement.css";
 import Header from "../../Header";
 import Footer from "../../Footer";
 import {
@@ -13,8 +13,6 @@ import {
   FaHome,
   FaBuilding,
   FaCity,
-  FaCalendarAlt,
-  FaTree,
   FaChair,
   FaHeart,
   FaShare,
@@ -26,31 +24,33 @@ import {
   FaArrowLeft as FaArrowLeftIcon,
   FaStreetView,
   FaUser,
+  FaTree,
 } from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
 
-interface Maison {
+interface Image {
+  url: string;
+  path: string;
+}
+
+interface Appartement {
   id: number;
-  type_transaction_id: number;
-  categorie_id: number;
-  ville_id: number;
-  delegation_id: number;
-  adresse: string;
   titre: string;
   description: string;
   prix: number;
   superficie: number;
-  nombre_chambres: number;
-  nombre_pieces: number;
-  annee_construction: number;
-  environnement_id: number | null;
+  superficie_couvert: number | null;
+  etage: number | null;
   meuble: boolean;
-  images: string[];
-  type_transaction?: { id: number; nom: string };
-  categorie?: { id: number; nom: string };
-  ville?: { id: number; nom: string };
-  delegation?: { id: number; nom: string };
-  environnement?: { id: number; nom: string };
+  adresse: string;
+  ville: string;
+  delegation: string;
+  categorie: string;
+  type: string;
+  environnements: string[];
+  images: Image[];
+  created_at: string;
+  updated_at: string;
 }
 
 interface SimilarProperty {
@@ -59,9 +59,8 @@ interface SimilarProperty {
   prix: number;
   adresse: string;
   ville: string;
-  nombre_chambres: number;
   superficie: number;
-  nombre_pieces: number;
+  etage: number | null;
   image: string;
 }
 
@@ -110,9 +109,9 @@ const CercleProgression: React.FC<{
   );
 };
 
-const DetailMaison = () => {
+const DetailAppartement = () => {
   const { id } = useParams<{ id: string }>();
-  const [maison, setMaison] = useState<Maison | null>(null);
+  const [appartement, setAppartement] = useState<Appartement | null>(null);
   const [similarProperties, setSimilarProperties] = useState<SimilarProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -132,19 +131,61 @@ const DetailMaison = () => {
   const bgGradient = useTransform(scrollYProgress, [0, 1], [0, 90]);
 
   useEffect(() => {
-    const fetchMaison = async () => {
+    const fetchAppartement = async () => {
       try {
-        const response = await axios.get<Maison>(`http://localhost:8000/api/maisons/${id}`);
-        setMaison(response.data);
+        const response = await axios.get<Appartement>(`http://localhost:8000/api/appartements/${id}`);
+        setAppartement(response.data);
         setLoading(false);
 
-    
+        const mockSimilarProperties: SimilarProperty[] = [
+          {
+            id: 1,
+            titre: "Appartement moderne à Sousse",
+            prix: 250000,
+            adresse: "Sousse",
+            ville: "Tunisie",
+            superficie: 100,
+            etage: 2,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 2,
+            titre: "Appartement spacieux",
+            prix: 320000,
+            adresse: "Tunis",
+            ville: "Tunisie",
+            superficie: 120,
+            etage: 3,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 3,
+            titre: "Appartement de luxe",
+            prix: 450000,
+            adresse: "Hammamet",
+            ville: "Tunisie",
+            superficie: 150,
+            etage: 5,
+            image: "https://via.placeholder.com/300x200",
+          },
+          {
+            id: 4,
+            titre: "Appartement cosy",
+            prix: 200000,
+            adresse: "Sfax",
+            ville: "Tunisie",
+            superficie: 80,
+            etage: 1,
+            image: "https://via.placeholder.com/300x200",
+          },
+        ];
+        setSimilarProperties(mockSimilarProperties);
       } catch (err) {
-        setError("Impossible de charger les détails de la propriété");
+        setError("Impossible de charger les détails de l'appartement");
         setLoading(false);
       }
     };
-    fetchMaison();
+    fetchAppartement();
   }, [id]);
 
   const handleThumbnailClick = (index: number) => {
@@ -165,15 +206,15 @@ const DetailMaison = () => {
   };
 
   const navigateFullScreen = (direction: "prev" | "next") => {
-    if (!maison) return;
+    if (!appartement) return;
 
     if (direction === "prev") {
       setCurrentFullScreenIndex((prev) =>
-        prev === 0 ? maison.images.length - 1 : prev - 1
+        prev === 0 ? appartement.images.length - 1 : prev - 1
       );
     } else {
       setCurrentFullScreenIndex((prev) =>
-        prev === maison.images.length - 1 ? 0 : prev + 1
+        prev === appartement.images.length - 1 ? 0 : prev + 1
       );
     }
   };
@@ -208,7 +249,7 @@ const DetailMaison = () => {
         exit={{ opacity: 0 }}
       >
         <div className="spinner-chargement"></div>
-        <p>Chargement de la propriété...</p>
+        <p>Chargement de l'appartement...</p>
       </motion.div>
     );
 
@@ -229,7 +270,7 @@ const DetailMaison = () => {
       </motion.div>
     );
 
-  if (!maison)
+  if (!appartement)
     return (
       <motion.div
         className="ecran-non-trouve"
@@ -237,8 +278,8 @@ const DetailMaison = () => {
         animate={{ opacity: 1 }}
       >
         <div className="contenu-non-trouve">
-          <h3>Propriété non trouvée</h3>
-          <p>La propriété que vous recherchez n'existe pas ou a été supprimée.</p>
+          <h3>Appartement non trouvé</h3>
+          <p>L'appartement que vous recherchez n'existe pas ou a été supprimé.</p>
           <Link to="/" className="bouton-retour-accueil">
             <FaArrowLeft /> Retour à l'accueil
           </Link>
@@ -247,7 +288,7 @@ const DetailMaison = () => {
     );
 
   return (
-    <div className="detail-maison">
+    <div className="detail-appartement">
       <Header />
 
       {/* Section Héros Parallaxe */}
@@ -262,7 +303,7 @@ const DetailMaison = () => {
         <div
           className="fond-parallaxe"
           style={{
-            backgroundImage: `url(http://localhost:8000/storage/${maison.images[0]})`,
+            backgroundImage: `url(${appartement.images[0]?.url || "https://via.placeholder.com/1920x1080"})`,
             backgroundAttachment: "fixed",
           }}
         />
@@ -276,9 +317,9 @@ const DetailMaison = () => {
           >
             <Link to="/">Accueil</Link>
             <IoIosArrowForward />
-            <Link to="/maisons">Propriétés</Link>
+            <Link to="/appartements">Appartements</Link>
             <IoIosArrowForward />
-            <span>{maison.titre}</span>
+            <span>{appartement.titre}</span>
           </motion.div>
 
           <motion.h1
@@ -287,7 +328,7 @@ const DetailMaison = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
           >
-            {maison.titre}
+            {appartement.titre}
           </motion.h1>
 
           <motion.div
@@ -298,8 +339,7 @@ const DetailMaison = () => {
           >
             <FaMapMarkerAlt />
             <span>
-              {maison.adresse}, {maison.ville?.nom || "Non défini"} -{" "}
-              {maison.delegation?.nom || "Non défini"}
+              {appartement.adresse}, {appartement.ville} - {appartement.delegation}
             </span>
           </motion.div>
 
@@ -341,10 +381,8 @@ const DetailMaison = () => {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 1.1, duration: 0.8, ease: "backOut" }}
         >
-          <span className="prix">{maison.prix.toLocaleString()} TND</span>
-          {maison.type_transaction?.nom && (
-            <span className="type-transaction">{maison.type_transaction.nom}</span>
-          )}
+          <span className="prix">{appartement.prix.toLocaleString()} TND</span>
+          <span className="type-transaction">{appartement.type}</span>
         </motion.div>
       </motion.section>
 
@@ -369,8 +407,8 @@ const DetailMaison = () => {
                 transition={{ duration: 0.5 }}
               >
                 <motion.img
-                  src={`http://localhost:8000/storage/${maison.images[activeImageIndex]}`}
-                  alt={`${maison.titre} ${activeImageIndex + 1}`}
+                  src={appartement.images[activeImageIndex]?.url || "https://via.placeholder.com/800x450"}
+                  alt={`${appartement.titre} ${activeImageIndex + 1}`}
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
                 />
@@ -389,7 +427,7 @@ const DetailMaison = () => {
                 className="bouton-nav precedent"
                 onClick={() =>
                   handleThumbnailClick(
-                    activeImageIndex === 0 ? maison.images.length - 1 : activeImageIndex - 1
+                    activeImageIndex === 0 ? appartement.images.length - 1 : activeImageIndex - 1
                   )
                 }
                 whileHover={{ scale: 1.1 }}
@@ -401,7 +439,7 @@ const DetailMaison = () => {
                 className="bouton-nav suivant"
                 onClick={() =>
                   handleThumbnailClick(
-                    activeImageIndex === maison.images.length - 1 ? 0 : activeImageIndex + 1
+                    activeImageIndex === appartement.images.length - 1 ? 0 : activeImageIndex + 1
                   )
                 }
                 whileHover={{ scale: 1.1 }}
@@ -413,7 +451,7 @@ const DetailMaison = () => {
           </div>
 
           <div className="defileur-miniatures">
-            {maison.images.map((image, index) => (
+            {appartement.images.map((image, index) => (
               <motion.div
                 key={index}
                 className={`conteneur-miniature ${index === activeImageIndex ? "actif" : ""}`}
@@ -422,7 +460,7 @@ const DetailMaison = () => {
                 transition={{ duration: 0.3 }}
               >
                 <img
-                  src={`http://localhost:8000/storage/${image}`}
+                  src={image.url}
                   alt={`Miniature ${index + 1}`}
                 />
               </motion.div>
@@ -465,7 +503,7 @@ const DetailMaison = () => {
               </div>
               <div className="contenu-description">
                 <div className="texte-riche">
-                  {maison.description.split("\n").map((paragraph, i) => (
+                  {appartement.description.split("\n").map((paragraph, i) => (
                     <motion.p
                       key={i}
                       initial={{ opacity: 0, x: -20 }}
@@ -478,16 +516,16 @@ const DetailMaison = () => {
                 </div>
                 <div className="caracteristiques-mises-en-valeur">
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🏡</div>
-                    <span>Vue panoramique</span>
+                    <div className="icone-mise-en-valeur">🏙</div>
+                    <span>Vues sur la ville</span>
                   </motion.div>
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🌞</div>
-                    <span>Exposition Sud</span>
+                    <div className="icone-mise-en-valeur">🛗</div>
+                    <span>Ascenseur disponible</span>
                   </motion.div>
                   <motion.div className="element-mise-en-valeur" whileHover={{ scale: 1.03 }}>
-                    <div className="icone-mise-en-valeur">🔇</div>
-                    <span>Environnement calme</span>
+                    <div className="icone-mise-en-valeur">🔒</div>
+                    <span>Sécurité 24/7</span>
                   </motion.div>
                 </div>
               </div>
@@ -520,26 +558,26 @@ const DetailMaison = () => {
                 <div className="grille-visuelle">
                   <div className="element-visuel">
                     <CercleProgression
-                      value={maison.nombre_chambres * 20}
-                      label="Chambres"
-                      icon={<FaBed />}
-                      count={maison.nombre_chambres}
-                    />
-                  </div>
-                  <div className="element-visuel">
-                    <CercleProgression
-                      value={Math.min(maison.superficie / 2, 100)}
+                      value={Math.min(appartement.superficie / 2, 100)}
                       label="Superficie"
                       icon={<FaRulerCombined />}
-                      count={`${maison.superficie}m²`}
+                      count={`${appartement.superficie}m²`}
                     />
                   </div>
                   <div className="element-visuel">
                     <CercleProgression
-                      value={maison.nombre_pieces * 15}
-                      label="Pièces"
-                      icon={<FaHome />}
-                      count={maison.nombre_pieces}
+                      value={(appartement.etage || 0) * 10}
+                      label="Étage"
+                      icon={<FaBuilding />}
+                      count={appartement.etage || "RDC"}
+                    />
+                  </div>
+                  <div className="element-visuel">
+                    <CercleProgression
+                      value={appartement.meuble ? 100 : 50}
+                      label="Meublé"
+                      icon={<FaChair />}
+                      count={appartement.meuble ? "Oui" : "Non"}
                     />
                   </div>
                 </div>
@@ -548,11 +586,13 @@ const DetailMaison = () => {
                 <div className="rangee-caracteristiques">
                   <div className="caracteristique">
                     <div className="icone-caracteristique">
-                      <FaCalendarAlt />
+                      <FaRulerCombined />
                     </div>
                     <div className="info-caracteristique">
-                      <span className="etiquette-caracteristique">Année de construction</span>
-                      <span className="valeur-caracteristique">{maison.annee_construction}</span>
+                      <span className="etiquette-caracteristique">Superficie couverte</span>
+                      <span className="valeur-caracteristique">
+                        {appartement.superficie_couvert ? `${appartement.superficie_couvert}m²` : "Non spécifié"}
+                      </span>
                     </div>
                   </div>
                   <div className="caracteristique">
@@ -561,18 +601,18 @@ const DetailMaison = () => {
                     </div>
                     <div className="info-caracteristique">
                       <span className="etiquette-caracteristique">Meublé</span>
-                      <span className="valeur-caracteristique">{maison.meuble ? "Oui" : "Non"}</span>
+                      <span className="valeur-caracteristique">{appartement.meuble ? "Oui" : "Non"}</span>
                     </div>
                   </div>
                 </div>
-                {maison.environnement && (
+                {appartement.environnements && appartement.environnements.length > 0 && (
                   <div className="caracteristique pleine-largeur">
                     <div className="icone-caracteristique">
                       <FaTree />
                     </div>
                     <div className="info-caracteristique">
-                      <span className="etiquette-caracteristique">Environnement</span>
-                      <span className="valeur-caracteristique">{maison.environnement.nom}</span>
+                      <span className="etiquette-caracteristique">Environnements</span>
+                      <span className="valeur-caracteristique">{appartement.environnements.join(", ")}</span>
                     </div>
                   </div>
                 )}
@@ -605,7 +645,7 @@ const DetailMaison = () => {
               <div className="mini-carte">
                 <div className="apercu-carte">
                   <iframe
-                    src={`https://maps.google.com/maps?q=${maison.ville?.nom},${maison.delegation?.nom}&output=embed`}
+                    src={`https://maps.google.com/maps?q=${appartement.ville},${appartement.delegation}&output=embed`}
                     frameBorder="0"
                     allowFullScreen
                   ></iframe>
@@ -613,7 +653,7 @@ const DetailMaison = () => {
                 <div className="superposition-carte">
                   <FaMapMarkerAlt className="pin-carte" />
                   <div className="infobulle-carte">
-                    {maison.adresse}, {maison.ville?.nom}
+                    {appartement.adresse}, {appartement.ville}
                   </div>
                 </div>
               </div>
@@ -624,7 +664,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="texte-info">
                     <h4>Type de transaction</h4>
-                    <p>{maison.type_transaction?.nom || "Non spécifié"}</p>
+                    <p>{appartement.type}</p>
                   </div>
                 </div>
                 <div className="element-info">
@@ -633,7 +673,7 @@ const DetailMaison = () => {
                   </div>
                   <div className="texte-info">
                     <h4>Catégorie</h4>
-                    <p>{maison.categorie?.nom || "Non spécifié"}</p>
+                    <p>{appartement.categorie}</p>
                   </div>
                 </div>
                 <div className="element-info">
@@ -643,7 +683,7 @@ const DetailMaison = () => {
                   <div className="texte-info">
                     <h4>Localisation</h4>
                     <p>
-                      {maison.delegation?.nom}, {maison.ville?.nom}
+                      {appartement.delegation}, {appartement.ville}
                     </p>
                   </div>
                 </div>
@@ -784,12 +824,14 @@ const DetailMaison = () => {
           </motion.div>
         </div>
       </section>
+
       {/* Séparateur de Section */}
       <div className="separateur-section">
         <div className="ligne-separateur"></div>
         <div className="diamant-separateur"></div>
         <div className="ligne-separateur"></div>
       </div>
+
       {/* Section Propriétés Similaires */}
       <section className="section-proprietes-similaires">
         <motion.div
@@ -799,9 +841,9 @@ const DetailMaison = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2>Propriétés Similaires</h2>
-          <Link to="/maisons" className="voir-tout">
-            Voir toutes <IoIosArrowForward />
+          <h2>Appartements Similaires</h2>
+          <Link to="/appartements" className="voir-tout">
+            Voir tous <IoIosArrowForward />
           </Link>
         </motion.div>
 
@@ -848,13 +890,10 @@ const DetailMaison = () => {
                   </p>
                   <div className="caracteristiques-propriete">
                     <span>
-                      <FaBed /> {property.nombre_chambres}
-                    </span>
-                    <span>
                       <FaRulerCombined /> {property.superficie}m²
                     </span>
                     <span>
-                      <FaHome /> {property.nombre_pieces}
+                      <FaBuilding /> Étage {property.etage || "RDC"}
                     </span>
                   </div>
                 </div>
@@ -893,7 +932,7 @@ const DetailMaison = () => {
 
             <div className="conteneur-image-plein-ecran">
               <motion.img
-                src={`http://localhost:8000/storage/${maison.images[currentFullScreenIndex]}`}
+                src={appartement.images[currentFullScreenIndex]?.url || "https://via.placeholder.com/1200x800"}
                 alt={`Plein écran ${currentFullScreenIndex + 1}`}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -918,10 +957,10 @@ const DetailMaison = () => {
             </div>
 
             <div className="miniatures-plein-ecran">
-              {maison.images.map((image, index) => (
+              {appartement.images.map((image, index) => (
                 <motion.img
                   key={index}
-                  src={`http://localhost:8000/storage/${image}`}
+                  src={image.url}
                   alt={`Miniature ${index + 1}`}
                   className={index === currentFullScreenIndex ? "actif" : ""}
                   onClick={() => setCurrentFullScreenIndex(index)}
@@ -970,4 +1009,4 @@ const DetailMaison = () => {
   );
 };
 
-export default DetailMaison;
+export default DetailAppartement;
