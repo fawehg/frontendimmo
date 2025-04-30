@@ -4,6 +4,7 @@ import { FaSearch, FaChevronLeft, FaChevronRight, FaHome, FaHouseUser, FaBuildin
 import { Link, useSearchParams } from "react-router-dom";
 import "./allProperties.css";
 
+// Interfaces (unchanged)
 interface Ville {
   id: number;
   nom: string;
@@ -219,6 +220,33 @@ interface Property {
   delegation_id: number;
 }
 
+// Debounce utility
+const debounce = (func: (...args: any[]) => void, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
+// Fetch with retry for rate limiting
+const fetchWithRetry = async (url: string, retries = 3, delay = 1000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await axios.get(url);
+      return response;
+    } catch (error) {
+      if (error.response?.status === 429 && i < retries - 1) {
+        const waitTime = delay * 2 ** i; // Exponential backoff: 1s, 2s, 4s
+        console.warn(`Rate limit hit for ${url}, retrying after ${waitTime}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, waitTime));
+        continue;
+      }
+      throw error;
+    }
+  }
+};
+
 const AllProperties: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [villes, setVilles] = useState<Ville[]>([]);
@@ -265,25 +293,47 @@ const AllProperties: React.FC = () => {
     const fetchInitialData = async () => {
       try {
         setLoading(true);
-        const [villesResponse, categoriesResponse, typesResponse] = await Promise.all([
-          axios.get<Ville[]>("http://localhost:8000/api/villes"),
-          axios.get<Categorie[]>("http://localhost:8000/api/categories"),
-          axios.get<Type[]>("http://localhost:8000/api/types"),
-        ]);
 
-        setVilles(villesResponse.data);
-        setCategories(categoriesResponse.data);
-        setTypes(typesResponse.data);
-        setError(null);
+        // Check localStorage for cached data
+        const cachedVilles = localStorage.getItem("villes");
+        const cachedCategories = localStorage.getItem("categories");
+        const cachedTypes = localStorage.getItem("types");
+
+        if (cachedVilles && cachedCategories && cachedTypes) {
+          setVilles(JSON.parse(cachedVilles));
+          setCategories(JSON.parse(cachedCategories));
+          setTypes(JSON.parse(cachedTypes));
+        } else {
+          const [villesResponse, categoriesResponse, typesResponse] = await Promise.all([
+            fetchWithRetry("http://localhost:8000/api/villes"),
+            fetchWithRetry("http://localhost:8000/api/categories"),
+            fetchWithRetry("http://localhost:8000/api/types"),
+          ]);
+
+          setVilles(villesResponse.data);
+          setCategories(categoriesResponse.data);
+          setTypes(typesResponse.data);
+
+          // Cache data in localStorage
+          localStorage.setItem("villes", JSON.stringify(villesResponse.data));
+          localStorage.setItem("categories", JSON.stringify(categoriesResponse.data));
+          localStorage.setItem("types", JSON.stringify(typesResponse.data));
+        }
 
         // Validate categorie query parameter
         const categorieParam = searchParams.get("categorie");
-        if (categorieParam && !categoriesResponse.data.some((c) => c.nom === categorieParam)) {
+        if (categorieParam && !categories.some((c) => c.nom === categorieParam)) {
           setFilters((prev) => ({ ...prev, categorie: "" }));
         }
+
+        setError(null);
       } catch (error) {
         console.error("Error fetching initial data:", error);
-        setError("Erreur lors du chargement des données initiales.");
+        if (error.response?.status === 429) {
+          setError("Trop de requêtes. Veuillez réessayer dans quelques secondes.");
+        } else {
+          setError("Erreur lors du chargement des données initiales.");
+        }
       } finally {
         setLoading(false);
       }
@@ -305,13 +355,13 @@ const AllProperties: React.FC = () => {
           terrainsResponse,
           etageVillasResponse,
         ] = await Promise.all([
-          axios.get<Maison[]>("http://localhost:8000/api/maisons"),
-          axios.get<Appartement[]>("http://localhost:8000/api/appartements"),
-          axios.get<Villa[]>("http://localhost:8000/api/villas"),
-          axios.get<Bureau[]>("http://localhost:8000/api/bureaux"),
-          axios.get<Ferme[]>("http://localhost:8000/api/fermes"),
-          axios.get<Terrain[]>("http://localhost:8000/api/terrains"),
-          axios.get<EtageVilla[]>("http://localhost:8000/api/etage-villas"),
+          fetchWithRetry("http://localhost:8000/api/maisons"),
+          fetchWithRetry("http://localhost:8000/api/appartements"),
+          fetchWithRetry("http://localhost:8000/api/villas"),
+          fetchWithRetry("http://localhost:8000/api/bureaux"),
+          fetchWithRetry("http://localhost:8000/api/fermes"),
+          fetchWithRetry("http://localhost:8000/api/terrains"),
+          fetchWithRetry("http://localhost:8000/api/etage-villas"),
         ]);
 
         setMaisons(maisonsResponse.data);
@@ -324,7 +374,11 @@ const AllProperties: React.FC = () => {
         setError(null);
       } catch (error) {
         console.error("Error fetching properties:", error);
-        setError("Erreur lors du chargement des propriétés.");
+        if (error.response?.status === 429) {
+          setError("Trop de requêtes. Veuillez réessayer dans quelques secondes.");
+        } else {
+          setError("Erreur lors du chargement des propriétés.");
+        }
       } finally {
         setLoading(false);
       }
@@ -470,7 +524,8 @@ const AllProperties: React.FC = () => {
       const matchesNombreBureaux =
         !filters.nombreBureaux ||
         (property.type === "bureau" &&
-          (bureaux.find((b) => b.id === property.id)?.nombre_bureaux ?? 0) >= (Number(filters.nombreBureaux) || 0));
+          (bureaux.find((b) => b.id === property.id)?.nombre_bureaux ?? 0) >=
+            (Number(filters.nombreBureaux) || 0));
       const matchesInfrastructures =
         !filters.infrastructures ||
         (property.type === "ferme" &&
@@ -482,7 +537,8 @@ const AllProperties: React.FC = () => {
       const matchesPermisConstruction =
         !filters.permisConstruction ||
         (property.type === "terrain" &&
-          terrains.find((t) => t.id === property.id)?.permis_construction.toString() === filters.permisConstruction);
+          terrains.find((t) => t.id === property.id)?.permis_construction.toString() ===
+            filters.permisConstruction);
       const matchesCloture =
         !filters.cloture ||
         (property.type === "terrain" &&
@@ -490,7 +546,8 @@ const AllProperties: React.FC = () => {
       const matchesSurfaceConstructible =
         !filters.surfaceConstructibleMin ||
         (property.type === "terrain" &&
-          (terrains.find((t) => t.id === property.id)?.surface_constructible ?? 0) >= Number(filters.surfaceConstructibleMin));
+          (terrains.find((t) => t.id === property.id)?.surface_constructible ?? 0) >=
+            Number(filters.surfaceConstructibleMin));
       const matchesNumeroEtage =
         !filters.numeroEtage ||
         (property.type === "etage-villa" &&
@@ -498,11 +555,13 @@ const AllProperties: React.FC = () => {
       const matchesAccesIndependant =
         !filters.accesIndependant ||
         (property.type === "etage-villa" &&
-          etageVillas.find((e) => e.id === property.id)?.acces_independant.toString() === filters.accesIndependant);
+          etageVillas.find((e) => e.id === property.id)?.acces_independant.toString() ===
+            filters.accesIndependant);
       const matchesParkingInclus =
         !filters.parkingInclus ||
         (property.type === "etage-villa" &&
-          etageVillas.find((e) => e.id === property.id)?.parking_inclus.toString() === filters.parkingInclus);
+          etageVillas.find((e) => e.id === property.id)?.parking_inclus.toString() ===
+            filters.parkingInclus);
 
       return (
         matchesType &&
@@ -527,26 +586,15 @@ const AllProperties: React.FC = () => {
     setCurrentPage(1);
   }, [maisons, appartements, villas, bureaux, fermes, terrains, etageVillas, filters]);
 
-  const fetchDelegations = async (villeId: number) => {
+  const debouncedFetchDelegations = debounce(async (villeId: number) => {
     try {
-      const response = await axios.get<Delegation[]>(`http://localhost:8000/api/delegations/${villeId}`);
+      const response = await fetchWithRetry(`http://localhost:8000/api/delegations/${villeId}`);
       setDelegations(response.data);
     } catch (error) {
       console.error("Error fetching delegations:", error);
       setDelegations([]);
     }
-  };
-
-  const indexOfLastProperty = currentPage * propertiesPerPage;
-  const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
-  const currentProperties = properties.slice(indexOfFirstProperty, indexOfLastProperty);
-  const totalPages = Math.ceil(properties.length / propertiesPerPage);
-
-  const paginate = (pageNumber: number) => {
-    if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
-    }
-  };
+  }, 500);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -555,7 +603,7 @@ const AllProperties: React.FC = () => {
     if (name === "ville") {
       const selectedVille = villes.find((v) => v.nom === value);
       if (selectedVille) {
-        fetchDelegations(selectedVille.id);
+        debouncedFetchDelegations(selectedVille.id);
       } else {
         setDelegations([]);
       }
@@ -579,6 +627,17 @@ const AllProperties: React.FC = () => {
     }
   };
 
+  const indexOfLastProperty = currentPage * propertiesPerPage;
+  const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
+  const currentProperties = properties.slice(indexOfFirstProperty, indexOfLastProperty);
+  const totalPages = Math.ceil(properties.length / propertiesPerPage);
+
+  const paginate = (pageNumber: number) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
   if (loading) {
     return (
       <div className="conteneur-chargement">
@@ -593,6 +652,11 @@ const AllProperties: React.FC = () => {
       <div className="conteneur-erreur">
         <h2>Erreur</h2>
         <p>{error}</p>
+        {error.includes("Trop de requêtes") && (
+          <button onClick={() => window.location.reload()}>
+            Réessayer
+          </button>
+        )}
       </div>
     );
   }
@@ -658,8 +722,6 @@ const AllProperties: React.FC = () => {
           onChange={handleFilterChange}
           placeholder="Superficie max (m²)"
         />
-       
-       
         <input
           type="number"
           name="numeroEtage"
@@ -667,7 +729,6 @@ const AllProperties: React.FC = () => {
           onChange={handleFilterChange}
           placeholder="Numéro d'étage"
         />
-       
         <select name="parkingInclus" value={filters.parkingInclus} onChange={handleFilterChange}>
           <option value="">Parking inclus</option>
           <option value="true">Oui</option>

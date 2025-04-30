@@ -29,6 +29,13 @@ import {
 } from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
 
+// Interface pour les images
+interface Image {
+  url: string;
+  path: string;
+}
+
+// Interface pour la maison
 interface Maison {
   id: number;
   type_transaction_id: number;
@@ -45,7 +52,7 @@ interface Maison {
   annee_construction: number;
   environnement_id: number | null;
   meuble: boolean;
-  images: string[];
+  images: Image[];
   type_transaction?: { id: number; nom: string };
   categorie?: { id: number; nom: string };
   ville?: { id: number; nom: string };
@@ -53,6 +60,7 @@ interface Maison {
   environnement?: { id: number; nom: string };
 }
 
+// Interface pour les propriétés similaires
 interface SimilarProperty {
   id: number;
   titre: string;
@@ -65,6 +73,7 @@ interface SimilarProperty {
   image: string;
 }
 
+// Composant CercleProgression
 const CercleProgression: React.FC<{
   value: number;
   label: string;
@@ -83,13 +92,7 @@ const CercleProgression: React.FC<{
       transition={{ duration: 0.5 }}
     >
       <svg viewBox="0 0 100 100">
-        <circle
-          className="fond-progression"
-          cx="50"
-          cy="50"
-          r={radius}
-          strokeWidth="8"
-        />
+        <circle className="fond-progression" cx="50" cy="50" r={radius} strokeWidth="8" />
         <circle
           className="barre-progression"
           cx="50"
@@ -110,6 +113,7 @@ const CercleProgression: React.FC<{
   );
 };
 
+// Composant principal
 const DetailMaison = () => {
   const { id } = useParams<{ id: string }>();
   const [maison, setMaison] = useState<Maison | null>(null);
@@ -131,30 +135,58 @@ const DetailMaison = () => {
   const y = useTransform(scrollYProgress, [0, 1], [0, -150]);
   const bgGradient = useTransform(scrollYProgress, [0, 1], [0, 90]);
 
+  // Récupération des données de la maison
   useEffect(() => {
     const fetchMaison = async () => {
       try {
         const response = await axios.get<Maison>(`http://localhost:8000/api/maisons/${id}`);
         setMaison(response.data);
         setLoading(false);
-
-    
       } catch (err) {
         setError("Impossible de charger les détails de la propriété");
         setLoading(false);
       }
     };
+
+    const fetchSimilarProperties = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8000/api/maisons`);
+        // Simulation de propriétés similaires (vous pouvez ajuster la logique)
+        const similar = response.data
+          .filter((item: Maison) => item.id !== Number(id))
+          .slice(0, 4)
+          .map((item: Maison) => ({
+            id: item.id,
+            titre: item.titre,
+            prix: item.prix,
+            adresse: item.adresse,
+            ville: item.ville?.nom || "Non défini",
+            nombre_chambres: item.nombre_chambres,
+            superficie: item.superficie,
+            nombre_pieces: item.nombre_pieces,
+            image: item.images[0]?.url || "/placeholder-image.jpg",
+          }));
+        setSimilarProperties(similar);
+      } catch (err) {
+        console.error("Erreur lors du chargement des propriétés similaires", err);
+      }
+    };
+
     fetchMaison();
+    fetchSimilarProperties();
   }, [id]);
 
+  // Gestion du clic sur les miniatures
   const handleThumbnailClick = (index: number) => {
     setActiveImageIndex(index);
   };
 
+  // Gestion des favoris
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
   };
 
+  // Gestion de l'affichage en plein écran
   const openFullScreen = (index: number) => {
     setCurrentFullScreenIndex(index);
     setShowFullScreen(true);
@@ -178,6 +210,7 @@ const DetailMaison = () => {
     }
   };
 
+  // Gestion du défilement du carrousel
   const handleCarouselScroll = (direction: "left" | "right") => {
     if (!carouselRef.current) return;
 
@@ -199,6 +232,7 @@ const DetailMaison = () => {
     }, 300);
   };
 
+  // Gestion du chargement
   if (loading)
     return (
       <motion.div
@@ -212,6 +246,7 @@ const DetailMaison = () => {
       </motion.div>
     );
 
+  // Gestion des erreurs
   if (error)
     return (
       <motion.div
@@ -229,6 +264,7 @@ const DetailMaison = () => {
       </motion.div>
     );
 
+  // Gestion de l'absence de maison
   if (!maison)
     return (
       <motion.div
@@ -262,7 +298,7 @@ const DetailMaison = () => {
         <div
           className="fond-parallaxe"
           style={{
-            backgroundImage: `url(http://localhost:8000/storage/${maison.images[0]})`,
+            backgroundImage: `url(${maison.images[0]?.url || "/placeholder-image.jpg"})`,
             backgroundAttachment: "fixed",
           }}
         />
@@ -369,10 +405,15 @@ const DetailMaison = () => {
                 transition={{ duration: 0.5 }}
               >
                 <motion.img
-                  src={`http://localhost:8000/storage/${maison.images[activeImageIndex]}`}
+                  src={maison.images[activeImageIndex]?.url || "/placeholder-image.jpg"}
                   alt={`${maison.titre} ${activeImageIndex + 1}`}
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.3 }}
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = "/placeholder-image.jpg";
+                  }}
                 />
                 <motion.button
                   className="bouton-agrandir"
@@ -422,8 +463,13 @@ const DetailMaison = () => {
                 transition={{ duration: 0.3 }}
               >
                 <img
-                  src={`http://localhost:8000/storage/${image}`}
+                  src={image.url}
                   alt={`Miniature ${index + 1}`}
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = "/placeholder-image.jpg";
+                  }}
                 />
               </motion.div>
             ))}
@@ -493,12 +539,14 @@ const DetailMaison = () => {
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Caractéristiques */}
           <motion.div
             className="carte-detail carte-caracteristiques"
@@ -579,12 +627,14 @@ const DetailMaison = () => {
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Info */}
           <motion.div
             className="carte-detail carte-info"
@@ -650,12 +700,14 @@ const DetailMaison = () => {
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Contact */}
           <motion.div
             className="carte-detail carte-contact"
@@ -784,12 +836,14 @@ const DetailMaison = () => {
           </motion.div>
         </div>
       </section>
+
       {/* Séparateur de Section */}
       <div className="separateur-section">
         <div className="ligne-separateur"></div>
         <div className="diamant-separateur"></div>
         <div className="ligne-separateur"></div>
       </div>
+
       {/* Section Propriétés Similaires */}
       <section className="section-proprietes-similaires">
         <motion.div
@@ -838,6 +892,11 @@ const DetailMaison = () => {
                     alt={property.titre}
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.3 }}
+                    onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                      const target = e.target as HTMLImageElement;
+                      target.onerror = null;
+                      target.src = "/placeholder-image.jpg";
+                    }}
                   />
                   <span className="prix-propriete">{property.prix.toLocaleString()} TND</span>
                 </div>
@@ -893,11 +952,16 @@ const DetailMaison = () => {
 
             <div className="conteneur-image-plein-ecran">
               <motion.img
-                src={`http://localhost:8000/storage/${maison.images[currentFullScreenIndex]}`}
+                src={maison.images[currentFullScreenIndex]?.url || "/placeholder-image.jpg"}
                 alt={`Plein écran ${currentFullScreenIndex + 1}`}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5 }}
+                onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null;
+                  target.src = "/placeholder-image.jpg";
+                }}
               />
               <motion.button
                 className="bouton-nav precedent"
@@ -921,12 +985,17 @@ const DetailMaison = () => {
               {maison.images.map((image, index) => (
                 <motion.img
                   key={index}
-                  src={`http://localhost:8000/storage/${image}`}
+                  src={image.url}
                   alt={`Miniature ${index + 1}`}
                   className={index === currentFullScreenIndex ? "actif" : ""}
                   onClick={() => setCurrentFullScreenIndex(index)}
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.3 }}
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                    const target = e.target as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = "/placeholder-image.jpg";
+                  }}
                 />
               ))}
             </div>
