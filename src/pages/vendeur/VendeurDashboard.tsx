@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaUpload, FaListAlt, FaBed, FaExpand, FaMapMarkerAlt, FaFileAlt, FaDollarSign, FaCloudSun, FaImage, FaLayerGroup,
-  FaHome, FaBuilding, FaCity, FaStore, FaRestroom, FaHotel, FaCalendarAlt,
+  FaHome, FaBuilding, FaCity, FaStore, FaHotel, FaCalendarAlt,
   FaKey, FaSwimmingPool, FaTree, FaClipboardList, FaSnowflake,
   FaParking, FaUsers, FaUtensils, FaShieldAlt, FaThLarge, FaMountain,
   FaNetworkWired, FaWifi, FaWater, FaTractor, FaCrow, FaBolt, FaRuler, FaExchangeAlt, FaTags, FaMapSigns, FaClipboard,
@@ -13,11 +13,11 @@ import {
   FaTools,
   FaCompass
 } from 'react-icons/fa';
-import axios from 'axios';
-import Header from "../../Header";
-import Footer from "../../Footer";
-import './VendeurDashboard.css';
 import { MdLandscape } from 'react-icons/md';
+import axios from 'axios';
+import Header from '../../Header';
+import Footer from '../../Footer';
+import './VendeurDashboard.css';
 
 interface Ville {
   id: number;
@@ -80,10 +80,65 @@ interface TypeTerrain {
   nom: string;
 }
 
-const VendeurDashboard = () => {
+const VendeurDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [darkMode] = useState(false);
-  const [formData, setFormData] = useState({
+  const [darkMode] = useState<boolean>(false);
+  const [formData, setFormData] = useState<{
+    typeTransaction: string;
+    typeCategorie: string;
+    ville: string;
+    delegation: string;
+    adresse: string;
+    titre: string;
+    description: string;
+    prix: string;
+    superficie: string;
+    nbChambres: string;
+    nbPieces: string;
+    anneeConstruction: string;
+    caracteristiques: string[];
+    environnement_id: number | null;
+    environnementsApp: number[];
+    images: File[];
+    meuble: boolean;
+    infrastructures: number[];
+    vue: string;
+    jardin: boolean;
+    piscine: boolean;
+    numero_etage: string;
+    superficieCouvert: string;
+    climatise: boolean;
+    ascenseur: boolean;
+    parking: boolean;
+    salleReunion: boolean;
+    cuisine: boolean;
+    nbBureaux: string;
+    nbToilettes: string;
+    securite: boolean;
+    fibreOptique: boolean;
+    wifi: boolean;
+    nbEtages: string;
+    superficieJardin: string;
+    typeTerrain: string;
+    piscinePrivee: boolean;
+    etage: string;
+    garage: boolean;
+    cave: boolean;
+    terrasse: boolean;
+    systemeIrrigation: boolean;
+    typeSol: string;
+    orientation: string;
+    cloture: boolean;
+    puits: boolean;
+    superficieCouverte: string;
+    surfaceConstructible: string;
+    types_terrains_id: string;
+    types_sols_id: string;
+    permisConstruction: boolean;
+    acces_independant: boolean;
+    parking_inclus: boolean;
+    status: string;
+  }>({
     typeTransaction: '',
     typeCategorie: '',
     ville: '',
@@ -96,12 +151,12 @@ const VendeurDashboard = () => {
     nbChambres: '',
     nbPieces: '',
     anneeConstruction: '',
-    caracteristiques: [] as string[],
-    environnement_id: null as number | null,
-    environnementsApp: [] as number[],
-    images: [] as File[],
+    caracteristiques: [],
+    environnement_id: null,
+    environnementsApp: [],
+    images: [],
     meuble: false,
-    infrastructures: [] as number[],
+    infrastructures: [],
     vue: '',
     jardin: false,
     piscine: false,
@@ -136,7 +191,8 @@ const VendeurDashboard = () => {
     types_sols_id: '',
     permisConstruction: false,
     acces_independant: false,
-    parking_inclus: false
+    parking_inclus: false,
+    status: 'pending'
   });
 
   const [villes, setVilles] = useState<Ville[]>([]);
@@ -152,7 +208,7 @@ const VendeurDashboard = () => {
   const [typesSol, setTypesSol] = useState<TypeSol[]>([]);
   const [typesTerrain, setTypesTerrain] = useState<TypeTerrain[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const iconStyle = {
     color: '#090536',
@@ -163,22 +219,41 @@ const VendeurDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Utilisateur non authentifié');
+        }
+
         const [
-          villesRes, 
-          categoriesRes, 
-          typesRes, 
-          environnementsRes, 
+          villesRes,
+          categoriesRes,
+          typesRes,
+          environnementsRes,
           environnementsAppRes,
           typesSolRes,
           typesTerrainRes
         ] = await Promise.all([
-          axios.get<Ville[]>("http://localhost:8000/api/villes"),
-          axios.get<Categorie[]>("http://localhost:8000/api/categories"),
-          axios.get<Type[]>("http://localhost:8000/api/types"),
-          axios.get<Environnement[]>("http://localhost:8000/api/environnements"),
-          axios.get<EnvironnementApp[]>("http://localhost:8000/api/environnementapp"),
-          axios.get<TypeSol[]>("http://localhost:8000/api/types-sols"),
-          axios.get<TypeTerrain[]>("http://localhost:8000/api/types-terrains")
+          axios.get<Ville[]>("http://localhost:8000/api/villes", {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get<Categorie[]>("http://localhost:8000/api/categories", {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get<Type[]>("http://localhost:8000/api/types", {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get<Environnement[]>("http://localhost:8000/api/environnements", {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get<EnvironnementApp[]>("http://localhost:8000/api/environnementapp", {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get<TypeSol[]>("http://localhost:8000/api/types-sols", {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get<TypeTerrain[]>("http://localhost:8000/api/types-terrains", {
+            headers: { Authorization: `Bearer ${token}` }
+          })
         ]);
 
         setVilles(villesRes.data);
@@ -190,17 +265,25 @@ const VendeurDashboard = () => {
         setTypesTerrain(typesTerrainRes.data);
       } catch (error) {
         console.error("Erreur lors du chargement des données", error);
+        alert("Veuillez vous connecter pour accéder à cette fonctionnalité.");
+        navigate('/login');
       }
     };
 
     fetchData();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (formData.typeCategorie === 'bureau') {
       const fetchCaracteristiquesBureaux = async () => {
         try {
-          const response = await axios.get<CaracteristiqueBureau[]>("http://localhost:8000/api/caracteristique-bureaux");
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('Utilisateur non authentifié');
+          }
+          const response = await axios.get<CaracteristiqueBureau[]>("http://localhost:8000/api/caracteristique-bureaux", {
+            headers: { Authorization: `Bearer ${token}` }
+          });
           setCaracteristiquesBureaux(response.data);
         } catch (error) {
           console.error("Erreur lors du chargement des caractéristiques des bureaux", error);
@@ -212,10 +295,20 @@ const VendeurDashboard = () => {
     if (formData.typeCategorie === 'ferme') {
       const fetchFermeData = async () => {
         try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('Utilisateur non authentifié');
+          }
           const [envRes, infraRes, orientRes] = await Promise.all([
-            axios.get<EnvironnementFerme[]>("http://localhost:8000/api/environnement-fermes"),
-            axios.get<InfrastructureFerme[]>("http://localhost:8000/api/infrastructures"),
-            axios.get<OrientationFerme[]>("http://localhost:8000/api/orientations")
+            axios.get<EnvironnementFerme[]>("http://localhost:8000/api/environnement-fermes", {
+              headers: { Authorization: `Bearer ${token}` }
+            }),
+            axios.get<InfrastructureFerme[]>("http://localhost:8000/api/infrastructures", {
+              headers: { Authorization: `Bearer ${token}` }
+            }),
+            axios.get<OrientationFerme[]>("http://localhost:8000/api/orientations", {
+              headers: { Authorization: `Bearer ${token}` }
+            })
           ]);
 
           setEnvironnementsFerme(envRes.data);
@@ -231,8 +324,13 @@ const VendeurDashboard = () => {
 
   const fetchDelegations = async (villeId: string) => {
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Utilisateur non authentifié');
+      }
       const response = await axios.get<Delegation[]>(
-        `http://localhost:8000/api/delegations/${villeId}`
+        `http://localhost:8000/api/delegations/${villeId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setDelegations(response.data);
     } catch (error) {
@@ -240,17 +338,16 @@ const VendeurDashboard = () => {
     }
   };
 
-  const generateDescription = () => {
-    let descriptionParts = [];
-    
-    // Informations de base communes à toutes les catégories
+  const generateDescription = (): string => {
+    let descriptionParts: string[] = [];
+
     descriptionParts.push(`Superbe propriété située à ${villes.find(v => v.id === parseInt(formData.ville))?.nom || ''}, ${delegations.find(d => d.id === parseInt(formData.delegation))?.nom || ''}.`);
     descriptionParts.push(`Adresse exacte : ${formData.adresse}.`);
     descriptionParts.push(`Superficie : ${formData.superficie} m².`);
     descriptionParts.push(`Prix : ${formData.prix} DT.`);
+    descriptionParts.push(`Statut : En attente de validation par l'administrateur.`);
 
-    // Informations spécifiques selon la catégorie
-    switch(formData.typeCategorie) {
+    switch (formData.typeCategorie) {
       case 'maison':
       case 'villa':
         descriptionParts.push(`Cette ${formData.typeCategorie === 'maison' ? 'maison' : 'villa'} dispose de :`);
@@ -262,7 +359,7 @@ const VendeurDashboard = () => {
           const env = environnements.find(e => e.id === formData.environnement_id);
           if (env) descriptionParts.push(`- Environnement : ${env.nom}`);
         }
-        
+
         if (formData.typeCategorie === 'villa') {
           if (formData.nbEtages) descriptionParts.push(`- Nombre d'étages : ${formData.nbEtages}`);
           if (formData.jardin) {
@@ -387,7 +484,7 @@ const VendeurDashboard = () => {
       setFormData(prev => ({
         ...prev,
         [name]: value,
-        description: name === 'ville' || name === 'delegation' || name === 'adresse' || 
+        description: name === 'ville' || name === 'delegation' || name === 'adresse' ||
                    name === 'superficie' || name === 'prix' ? generateDescription() : prev.description
       }));
 
@@ -460,26 +557,36 @@ const VendeurDashboard = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-  
+
     try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Utilisateur non authentifié');
+      }
+
+      const headers = {
+        'Content-Type': 'multipart/form-data',
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
+
       const selectedType = types.find(t =>
         t.nom.toLowerCase().replace(' ', '_') === formData.typeTransaction
       );
       const selectedCategory = categories.find(c =>
         c.nom.toLowerCase().replace(' ', '_') === formData.typeCategorie
       );
-  
+
       if (!selectedType || !selectedCategory) {
         throw new Error("Type ou catégorie non valide");
       }
-  
-      // Détermination de l'endpoint selon la catégorie
+
       let endpoint = 'http://localhost:8000/api/maisons';
       let typeField = 'type_transaction_id';
       let chambresField = 'nombre_chambres';
       let piecesField = 'nombre_pieces';
       let etageField = 'etage';
-  
+
       if (formData.typeCategorie === 'appartement') {
         endpoint = 'http://localhost:8000/api/appartements';
       } else if (formData.typeCategorie === 'villa') {
@@ -501,34 +608,34 @@ const VendeurDashboard = () => {
         endpoint = 'http://localhost:8000/api/terrains';
         typeField = 'type_id';
       }
-  
+
       const caracteristiquesIds = formData.caracteristiques
         .map((caracName: string) => {
           const found = caracteristiquesBureaux.find(c => c.nom === caracName);
           return found ? found.id : null;
         })
         .filter((id: number | null) => id !== null);
-  
-      const getNumericValue = (value: string) => {
+
+      const getNumericValue = (value: string): number | null => {
         if (!value || isNaN(parseInt(value))) return null;
         return parseInt(value);
       };
-  
+
       const selectedOrientation = formData.typeCategorie === 'ferme'
         ? orientationsFerme.find(o => o.nom.toLowerCase() === formData.orientation.toLowerCase())
         : null;
-  
+
       const selectedTerrain = formData.typeCategorie === 'terrain_constructible'
         ? typesTerrain.find(t => t.id === parseInt(formData.types_terrains_id))
         : null;
       const selectedSol = formData.typeCategorie === 'terrain_constructible'
         ? typesSol.find(s => s.id === parseInt(formData.types_sols_id))
         : null;
-  
+
       if (formData.typeCategorie === 'terrain_constructible' && (!selectedTerrain || !selectedSol)) {
         throw new Error("Veuillez sélectionner un type de terrain et un type de sol valides");
       }
-  
+
       const propertyData: Record<string, any> = {
         [typeField]: selectedType.id,
         categorie_id: selectedCategory.id,
@@ -543,8 +650,9 @@ const VendeurDashboard = () => {
         environnement_id: formData.environnement_id,
         meuble: formData.meuble ? 1 : 0,
         cloture: formData.cloture ? 1 : 0,
+        status: formData.status
       };
-  
+
       if (formData.typeCategorie === 'etage_de_villa') {
         propertyData.numero_etage = getNumericValue(formData.numero_etage) ?? 0;
         propertyData.acces_independant = formData.acces_independant ? 1 : 0;
@@ -605,7 +713,7 @@ const VendeurDashboard = () => {
         propertyData.piscine = formData.piscine ? 1 : 0;
         propertyData.garage = formData.garage ? 1 : 0;
       }
-  
+
       const formDataToSend = new FormData();
       Object.entries(propertyData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
@@ -618,19 +726,16 @@ const VendeurDashboard = () => {
           }
         }
       });
-  
+
       formData.images.forEach((image, index) => {
         formDataToSend.append(`images[${index}]`, image);
       });
-  
+
       const response = await axios.post(endpoint, formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       });
-  
-      alert('Annonce créée avec succès !');
+
+      alert('Annonce soumise avec succès ! Elle est en attente de validation par l\'administrateur.');
       navigate('/');
     } catch (error: any) {
       console.error("Erreur détaillée:", {
@@ -911,6 +1016,33 @@ const VendeurDashboard = () => {
                 ))}
               </div>
             </div>
+            <div className="property-form__field">
+              <label><FaTractor style={iconStyle} /> Système d'irrigation</label>
+              <input
+                type="checkbox"
+                name="systemeIrrigation"
+                checked={formData.systemeIrrigation}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="property-form__field">
+              <label><FaDrawPolygon style={iconStyle} /> Clôture</label>
+              <input
+                type="checkbox"
+                name="cloture"
+                checked={formData.cloture}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="property-form__field">
+              <label><FaWater style={iconStyle} /> Puits</label>
+              <input
+                type="checkbox"
+                name="puits"
+                checked={formData.puits}
+                onChange={handleChange}
+              />
+            </div>
           </>
         );
       case 'bureau':
@@ -927,7 +1059,7 @@ const VendeurDashboard = () => {
               />
             </div>
             <div className="property-form__field">
-              <label><FaRestroom style={iconStyle} /> Nombre de toilettes</label>
+              <label><FaBuilding style={iconStyle} /> Nombre de toilettes</label>
               <input
                 type="number"
                 name="nbToilettes"
@@ -1109,13 +1241,13 @@ const VendeurDashboard = () => {
                 type="checkbox"
                 name="permisConstruction"
                 checked={formData.permisConstruction}
-                onChange={handleChange}
+                onChange={handleRalChange}
               />
             </div>
             <div className="property-form__field">
               <label><FaDrawPolygon style={iconStyle} /> Clôturé</label>
               <input
-                type="checkbox" 
+                type="checkbox"
                 name="cloture"
                 checked={formData.cloture}
                 onChange={handleChange}
@@ -1240,7 +1372,6 @@ const VendeurDashboard = () => {
                 readOnly
               />
             </div>
-
             <div className="property-form__field">
               <label><FaDollarSign style={iconStyle} /> Prix (DT)</label>
               <input
@@ -1311,7 +1442,7 @@ const VendeurDashboard = () => {
             className="property-form__submit"
             disabled={isLoading}
           >
-            {isLoading ? 'Publication en cours...' : 'Publier l\'annonce'}
+            {isLoading ? 'Soumission en cours...' : 'Soumettre l\'annonce pour validation'}
           </button>
         </form>
       </div>

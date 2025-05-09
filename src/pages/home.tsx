@@ -33,7 +33,7 @@ import { HiOfficeBuilding } from "react-icons/hi";
 import { Link } from "react-router-dom";
 import { useFavorites } from "../context/FavoritesContext";
 
-// Interfaces (unchanged)
+// Interfaces
 interface Ville {
   id: number;
   nom: string;
@@ -83,6 +83,7 @@ interface Maison {
   type: string;
   created_at: string;
   updated_at: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Appartement {
@@ -107,6 +108,7 @@ interface Appartement {
   environnements: string[];
   created_at: string;
   updated_at: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Villa {
@@ -140,6 +142,7 @@ interface Villa {
   type: string;
   created_at: string;
   updated_at: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Bureau {
@@ -163,6 +166,7 @@ interface Bureau {
   updated_at: string;
   ville_id: number;
   delegation_id: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Ferme {
@@ -184,6 +188,7 @@ interface Ferme {
   updated_at: string;
   ville_id: number;
   delegation_id: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Terrain {
@@ -208,6 +213,7 @@ interface Terrain {
   updated_at: string;
   ville_id: number;
   delegation_id: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface EtageVilla {
@@ -230,6 +236,7 @@ interface EtageVilla {
   created_at: string;
   ville_id: number;
   delegation_id: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Property {
@@ -441,6 +448,7 @@ const Home: React.FC = () => {
     const fetchProperties = async () => {
       try {
         setLoading(true);
+        // Fetch only properties with status 'approved'
         const [
           maisonsResponse,
           appartementsResponse,
@@ -450,13 +458,13 @@ const Home: React.FC = () => {
           terrainsResponse,
           etageVillasResponse,
         ] = await Promise.all([
-          fetchWithRetry("http://localhost:8000/api/maisons"),
-          fetchWithRetry("http://localhost:8000/api/appartements"),
-          fetchWithRetry("http://localhost:8000/api/villas"),
-          fetchWithRetry("http://localhost:8000/api/bureaux"),
-          fetchWithRetry("http://localhost:8000/api/fermes"),
-          fetchWithRetry("http://localhost:8000/api/terrains"),
-          fetchWithRetry("http://localhost:8000/api/etage-villas"),
+          fetchWithRetry("http://localhost:8000/api/maisons?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/appartements?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/villas?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/bureaux?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/fermes?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/terrains?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/etage-villas?status=approved"),
         ]);
 
         setMaisons(maisonsResponse.data);
@@ -483,6 +491,7 @@ const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Combine properties, only including those with status 'approved' (ensured by API)
     const combinedProperties: Property[] = [
       ...maisons.map((maison) => ({
         id: maison.id,
@@ -685,6 +694,7 @@ const Home: React.FC = () => {
       );
     });
 
+    // Display up to 6 most recent approved properties
     setProperties(filteredProperties.slice(0, 6));
   }, [maisons, appartements, villas, bureaux, fermes, terrains, etageVillas, filters]);
 

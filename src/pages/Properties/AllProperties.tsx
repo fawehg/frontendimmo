@@ -4,7 +4,7 @@ import { FaSearch, FaChevronLeft, FaChevronRight, FaHome, FaHouseUser, FaBuildin
 import { Link, useSearchParams } from "react-router-dom";
 import "./allProperties.css";
 
-// Interfaces (unchanged)
+// Interfaces
 interface Ville {
   id: number;
   nom: string;
@@ -54,6 +54,7 @@ interface Maison {
   type: string;
   created_at: string;
   updated_at: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Appartement {
@@ -78,6 +79,7 @@ interface Appartement {
   environnements: string[];
   created_at: string;
   updated_at: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Villa {
@@ -111,6 +113,7 @@ interface Villa {
   type: string;
   created_at: string;
   updated_at: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Bureau {
@@ -134,6 +137,7 @@ interface Bureau {
   updated_at: string;
   ville_id: number;
   delegation_id: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Ferme {
@@ -155,6 +159,7 @@ interface Ferme {
   updated_at: string;
   ville_id: number;
   delegation_id: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Terrain {
@@ -179,6 +184,7 @@ interface Terrain {
   updated_at: string;
   ville_id: number;
   delegation_id: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface EtageVilla {
@@ -201,6 +207,7 @@ interface EtageVilla {
   created_at: string;
   ville_id: number;
   delegation_id: number;
+  status: 'pending' | 'approved' | 'rejected';
 }
 
 interface Property {
@@ -346,6 +353,8 @@ const AllProperties: React.FC = () => {
     const fetchProperties = async () => {
       try {
         setLoading(true);
+        console.log("Fetching properties with status=approved...");
+        // Fetch only properties with status 'approved'
         const [
           maisonsResponse,
           appartementsResponse,
@@ -355,22 +364,48 @@ const AllProperties: React.FC = () => {
           terrainsResponse,
           etageVillasResponse,
         ] = await Promise.all([
-          fetchWithRetry("http://localhost:8000/api/maisons"),
-          fetchWithRetry("http://localhost:8000/api/appartements"),
-          fetchWithRetry("http://localhost:8000/api/villas"),
-          fetchWithRetry("http://localhost:8000/api/bureaux"),
-          fetchWithRetry("http://localhost:8000/api/fermes"),
-          fetchWithRetry("http://localhost:8000/api/terrains"),
-          fetchWithRetry("http://localhost:8000/api/etage-villas"),
+          fetchWithRetry("http://localhost:8000/api/maisons?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/appartements?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/villas?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/bureaux?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/fermes?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/terrains?status=approved"),
+          fetchWithRetry("http://localhost:8000/api/etage-villas?status=approved"),
         ]);
 
-        setMaisons(maisonsResponse.data);
-        setAppartements(appartementsResponse.data);
-        setVillas(villasResponse.data);
-        setBureaux(bureauxResponse.data);
-        setFermes(fermesResponse.data);
-        setTerrains(terrainsResponse.data);
-        setEtageVillas(etageVillasResponse.data);
+        // Log raw responses
+        console.log("Maisons Response:", maisonsResponse.data);
+        console.log("Appartements Response:", appartementsResponse.data);
+        console.log("Villas Response:", villasResponse.data);
+        console.log("Bureaux Response:", bureauxResponse.data);
+        console.log("Fermes Response:", fermesResponse.data);
+        console.log("Terrains Response:", terrainsResponse.data);
+        console.log("Etage Villas Response:", etageVillasResponse.data);
+
+        // Filter to ensure only approved properties
+        const approvedMaisons = maisonsResponse.data.filter((m: Maison) => m.status === 'approved');
+        const approvedAppartements = appartementsResponse.data.filter((a: Appartement) => a.status === 'approved');
+        const approvedVillas = villasResponse.data.filter((v: Villa) => v.status === 'approved');
+        const approvedBureaux = bureauxResponse.data.filter((b: Bureau) => b.status === 'approved');
+        const approvedFermes = fermesResponse.data.filter((f: Ferme) => f.status === 'approved');
+        const approvedTerrains = terrainsResponse.data.filter((t: Terrain) => t.status === 'approved');
+        const approvedEtageVillas = etageVillasResponse.data.filter((e: EtageVilla) => e.status === 'approved');
+
+        console.log("Approved Maisons:", approvedMaisons);
+        console.log("Approved Appartements:", approvedAppartements);
+        console.log("Approved Villas:", approvedVillas);
+        console.log("Approved Bureaux:", approvedBureaux);
+        console.log("Approved Fermes:", approvedFermes);
+        console.log("Approved Terrains:", approvedTerrains);
+        console.log("Approved Etage Villas:", approvedEtageVillas);
+
+        setMaisons(approvedMaisons);
+        setAppartements(approvedAppartements);
+        setVillas(approvedVillas);
+        setBureaux(approvedBureaux);
+        setFermes(approvedFermes);
+        setTerrains(approvedTerrains);
+        setEtageVillas(approvedEtageVillas);
         setError(null);
       } catch (error) {
         console.error("Error fetching properties:", error);
@@ -388,6 +423,7 @@ const AllProperties: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // Combine properties
     const combinedProperties: Property[] = [
       ...maisons.map((maison) => ({
         id: maison.id,
@@ -503,6 +539,8 @@ const AllProperties: React.FC = () => {
       })),
     ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
+    console.log("Combined Properties:", combinedProperties);
+
     const filteredProperties = combinedProperties.filter((property) => {
       const matchesType = !filters.type || property.typeTransaction === filters.type;
       const matchesCategorie = !filters.categorie || property.categorie === filters.categorie;
@@ -582,6 +620,7 @@ const AllProperties: React.FC = () => {
       );
     });
 
+    console.log("Filtered Properties:", filteredProperties);
     setProperties(filteredProperties);
     setCurrentPage(1);
   }, [maisons, appartements, villas, bureaux, fermes, terrains, etageVillas, filters]);
@@ -630,6 +669,7 @@ const AllProperties: React.FC = () => {
   const indexOfLastProperty = currentPage * propertiesPerPage;
   const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
   const currentProperties = properties.slice(indexOfFirstProperty, indexOfLastProperty);
+  console.log("Current Properties (for rendering):", currentProperties);
   const totalPages = Math.ceil(properties.length / propertiesPerPage);
 
   const paginate = (pageNumber: number) => {

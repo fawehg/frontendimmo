@@ -33,6 +33,14 @@ interface Image {
   path: string;
 }
 
+interface Vendeur {
+  id: number;
+  nom: string;
+  prenom: string;
+  email: string;
+  phone?: string;
+}
+
 interface EtageVilla {
   id: number;
   titre: string;
@@ -51,6 +59,7 @@ interface EtageVilla {
   annee_construction: number;
   images: Image[];
   created_at: string;
+  vendeur: Vendeur | null;
 }
 
 interface SimilarProperty {
@@ -62,6 +71,16 @@ interface SimilarProperty {
   superficie: number;
   numero_etage: number;
   image: string;
+}
+
+interface Message {
+  id: number;
+  senderName: string;
+  senderEmail: string;
+  senderPhone: string;
+  content: string;
+  timestamp: string;
+  response?: string;
 }
 
 const CercleProgression: React.FC<{
@@ -120,6 +139,15 @@ const DetailEtageVilla = () => {
   const [showFullScreen, setShowFullScreen] = useState(false);
   const [currentFullScreenIndex, setCurrentFullScreenIndex] = useState(0);
   const [showVirtualTour, setShowVirtualTour] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const [, setCarouselScrollPosition] = useState(0);
@@ -130,35 +158,29 @@ const DetailEtageVilla = () => {
   const y = useTransform(scrollYProgress, [0, 1], [0, -150]);
   const bgGradient = useTransform(scrollYProgress, [0, 1], [0, 90]);
 
-  // Default placeholder image
   const defaultImage = "https://via.placeholder.com/800x450?text=Image+non+disponible";
 
   useEffect(() => {
     const fetchEtageVilla = async () => {
       try {
         const response = await axios.get<EtageVilla>(`http://localhost:8000/api/etage-villas/${id}`);
-        console.log("API Response:", response.data); // Debug: Log the API response
         const villaData = response.data;
 
-        // Normalize images field
         let images: Image[] = [];
         if (villaData.images && Array.isArray(villaData.images)) {
-          // Handle case where images is an array but may contain malformed data
           villaData.images.forEach((img) => {
             if (img && typeof img === "object" && img.path) {
               try {
-                // Check if path is a JSON-encoded string
                 let paths: string[] = [];
                 if (typeof img.path === "string" && img.path.startsWith('[')) {
                   paths = JSON.parse(img.path);
                 } else {
                   paths = [img.path];
                 }
-                // Map paths to Image objects
                 paths.forEach((path) => {
                   if (typeof path === "string") {
                     images.push({
-                      url: `http://localhost:8000/${path}`, // Mimic asset() by prefixing with backend URL
+                      url: `http://localhost:8000/${path}`,
                       path: path,
                     });
                   }
@@ -169,7 +191,6 @@ const DetailEtageVilla = () => {
             }
           });
         } else if (typeof villaData.images === "string") {
-          // Handle case where images is a JSON-encoded string
           try {
             const parsedImages = JSON.parse(villaData.images);
             if (Array.isArray(parsedImages)) {
@@ -183,18 +204,14 @@ const DetailEtageVilla = () => {
           }
         }
 
-        // Validate and filter images
         images = images.filter(
           (img) => img && typeof img === "object" && img.url && typeof img.url === "string"
         );
-
-        console.log("Normalized Images:", images); // Debug: Log normalized images
 
         villaData.images = images;
         setEtageVilla(villaData);
         setLoading(false);
 
-        // Mock similar properties (unchanged)
         const mockSimilarProperties: SimilarProperty[] = [
           {
             id: 1,
@@ -299,6 +316,62 @@ const DetailEtageVilla = () => {
     }, 300);
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+    setFormSuccess("");
+
+    const { name, email, phone, message } = formData;
+
+    if (!name || !email || !phone || !message) {
+      setFormError("Veuillez remplir tous les champs.");
+      return;
+    }
+
+    const newMessage: Message = {
+      id: messages.length + 1,
+      senderName: name,
+      senderEmail: email,
+      senderPhone: phone,
+      content: message,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      // Mock API call
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            ...newMessage,
+            response: "Merci pour votre message ! Je vous contacterai bientôt pour discuter des détails.",
+          },
+        ]);
+      }, 2000);
+
+      setMessages((prev) => [...prev, newMessage]);
+      setFormSuccess("Message envoyé avec succès ! Le vendeur vous répondra bientôt.");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (err) {
+      setFormError("Erreur lors de l'envoi du message. Veuillez réessayer.");
+    }
+  };
+
+  const formatPhoneForLinks = (phone: string | undefined): string => {
+    if (!phone) return "+21698765432";
+    const cleanedPhone = phone.replace(/[^\d+]/g, "");
+    return cleanedPhone.startsWith("+") ? cleanedPhone : `+216${cleanedPhone}`;
+  };
+
+  const formatEmailForMailto = (email: string | undefined): string => {
+    return email || "contact@immobilier.tn";
+  };
+
   if (loading)
     return (
       <motion.div
@@ -346,7 +419,6 @@ const DetailEtageVilla = () => {
       </motion.div>
     );
 
-  // Check if images are available
   const hasImages = etageVilla.images && etageVilla.images.length > 0;
 
   return (
@@ -821,27 +893,27 @@ const DetailEtageVilla = () => {
                 <FaUser className="icone-entete" />
                 <div className="ligne-decoration"></div>
               </div>
-              <h2>Votre Agent Immobilier</h2>
+              <h2>Le Vendeur</h2>
             </div>
             <div className="contenu-carte">
               <div className="profil-agent">
-                <div className="photo-agent">
-                  <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Agent" />
+                <div className="icon-agent">
+                  <FaUser />
                   <div className="badge-agent">
-                    <span>⭐ 4.9/5</span>
+                    <span>⭐ 4.8/5</span>
                   </div>
                 </div>
                 <div className="details-agent">
-                  <h3>Sophie Martin</h3>
-                  <p className="titre-agent">Agent Immobilier Senior</p>
-                  <p className="experience-agent">10+ ans d'expérience</p>
+                  <h3>{etageVilla.vendeur ? `${etageVilla.vendeur.prenom} ${etageVilla.vendeur.nom}` : "Vendeur non spécifié"}</h3>
+                  <p className="titre-agent">Propriétaire</p>
+                  <p className="experience-agent">Vendeur expérimenté</p>
                   <div className="stats-agent">
                     <div className="stat">
-                      <span>50+</span>
-                      <small>Transactions</small>
+                      <span>20+</span>
+                      <small>Annonces publiées</small>
                     </div>
                     <div className="stat">
-                      <span>98%</span>
+                      <span>95%</span>
                       <small>Satisfaction</small>
                     </div>
                   </div>
@@ -850,44 +922,71 @@ const DetailEtageVilla = () => {
 
               <div className="methodes-contact">
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode telephone">
-                    <FaPhone />
-                  </div>
-                  <div className="info-methode">
-                    <h4>Appelez-moi</h4>
-                    <p>+216 12 345 678</p>
-                  </div>
+                  <a
+                    href={`tel:${formatPhoneForLinks(etageVilla.vendeur?.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="phone-link"
+                  >
+                    <div className="icone-methode telephone">
+                      <FaPhone />
+                    </div>
+                    <div className="info-methode">
+                      <h4>Appelez-moi</h4>
+                      <p>{etageVilla.vendeur?.phone || "+216 98 765 432"}</p>
+                    </div>
+                  </a>
                 </motion.div>
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode whatsapp">
-                    <FaWhatsapp />
-                  </div>
-                  <div className="info-methode">
-                    <h4>WhatsApp</h4>
-                    <p>Envoyez un message</p>
-                  </div>
+                  <a
+                    href={`https://wa.me/${formatPhoneForLinks(etageVilla.vendeur?.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="whatsapp-link"
+                  >
+                    <div className="icone-methode whatsapp">
+                      <FaWhatsapp />
+                    </div>
+                    <div className="info-methode">
+                      <h4>WhatsApp</h4>
+                      <p>Envoyez un message</p>
+                    </div>
+                  </a>
                 </motion.div>
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode email">
-                    <FaEnvelope />
-                  </div>
-                  <div className="info-methode">
-                    <h4>Email</h4>
-                    <p>sophie@immobilier.tn</p>
-                  </div>
+                  <a
+                    href={`mailto:${formatEmailForMailto(etageVilla.vendeur?.email)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="email-link"
+                  >
+                    <div className="icone-methode email">
+                      <FaEnvelope />
+                    </div>
+                    <div className="info-methode">
+                      <h4>Email</h4>
+                      <p>{etageVilla.vendeur?.email || "contact@immobilier.tn"}</p>
+                    </div>
+                  </a>
                 </motion.div>
               </div>
 
               <div className="conteneur-formulaire-contact">
-                <h3 className="titre-formulaire">Ou envoyez un message</h3>
-                <form className="formulaire-contact">
+                <h3 className="titre-formulaire">Envoyez un message au vendeur</h3>
+                <form className="formulaire-contact" onSubmit={handleFormSubmit}>
                   <motion.div
                     className="groupe-formulaire"
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                   >
-                    <input type="text" placeholder="Votre nom complet" />
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Votre nom complet"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -896,7 +995,13 @@ const DetailEtageVilla = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <input type="email" placeholder="Votre email" />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Votre email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -905,7 +1010,13 @@ const DetailEtageVilla = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <input type="tel" placeholder="Votre téléphone" />
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Votre téléphone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -914,9 +1025,16 @@ const DetailEtageVilla = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <textarea placeholder="Votre message"></textarea>
+                    <textarea
+                      name="message"
+                      placeholder="Votre message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                    ></textarea>
                     <div className="decoration-input"></div>
                   </motion.div>
+                  {formError && <p className="erreur-formulaire">{formError}</p>}
+                  {formSuccess && <p className="succes-formulaire">{formSuccess}</p>}
                   <motion.button
                     type="submit"
                     className="bouton-soumettre"
@@ -931,6 +1049,27 @@ const DetailEtageVilla = () => {
                   </motion.button>
                 </form>
               </div>
+
+              {messages.length > 0 && (
+                <div className="historique-messages">
+                  <h3>Vos messages</h3>
+                  {messages.map((msg) => (
+                    <motion.div
+                      key={msg.id}
+                      className="message"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <p><strong>Vous:</strong> {msg.content}</p>
+                      <p><small>Envoyé le: {new Date(msg.timestamp).toLocaleString()}</small></p>
+                      {msg.response && (
+                        <p><strong>Réponse du vendeur:</strong> {msg.response}</p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -943,154 +1082,7 @@ const DetailEtageVilla = () => {
         <div className="ligne-separateur"></div>
       </div>
 
-      {/* Section Propriétés Similaires */}
-      <section className="section-proprietes-similaires">
-        <motion.div
-          className="entete-section"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <h2>Étages de Villa Similaires</h2>
-          <Link to="/etage-villas" className="voir-tout">
-            Voir tous <IoIosArrowForward />
-          </Link>
-        </motion.div>
-
-        <div className="conteneur-carrousel">
-          {showLeftArrow && (
-            <motion.button
-              className="fleche-carrousel gauche"
-              onClick={() => handleCarouselScroll("left")}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaArrowLeftIcon />
-            </motion.button>
-          )}
-          <div className="carrousel-proprietes" ref={carouselRef}>
-            {similarProperties.map((property, index) => (
-              <motion.div
-                key={property.id}
-                className="carte-propriete"
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{
-                  y: -10,
-                  rotateY: 5,
-                  rotateX: 5,
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
-                }}
-              >
-                <div className="image-propriete">
-                  <motion.img
-                    src={property.image}
-                    alt={property.titre}
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <span className="prix-propriete">{property.prix.toLocaleString()} TND</span>
-                </div>
-                <div className="details-propriete">
-                  <h3>{property.titre}</h3>
-                  <p className="localisation-propriete">
-                    <FaMapMarkerAlt /> {property.adresse}, {property.ville}
-                  </p>
-                  <div className="caracteristiques-propriete">
-                    <span>
-                      <FaRulerCombined /> {property.superficie}m²
-                    </span>
-                    <span>
-                      <FaLayerGroup /> Étage {property.numero_etage}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          {showRightArrow && (
-            <motion.button
-              className="fleche-carrousel droite"
-              onClick={() => handleCarouselScroll("right")}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaArrowRight />
-            </motion.button>
-          )}
-        </div>
-      </section>
-
-      {/* Visionneuse Plein Écran */}
-      <AnimatePresence>
-        {showFullScreen && hasImages && (
-          <motion.div
-            className="visionneuse-plein-ecran"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.button
-              className="bouton-fermer"
-              onClick={closeFullScreen}
-              whileHover={{ scale: 1.1, rotate: 90 }}
-            >
-              ×
-            </motion.button>
-
-            <div className="conteneur-image-plein-ecran">
-              <motion.img
-                src={etageVilla.images[currentFullScreenIndex]?.url || defaultImage}
-                alt={`Plein écran ${currentFullScreenIndex + 1}`}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                onError={(e) => {
-                  console.warn(`Failed to load full-screen image: ${etageVilla.images[currentFullScreenIndex]?.url}`);
-                  e.currentTarget.src = defaultImage;
-                }}
-              />
-              <motion.button
-                className="bouton-nav precedent"
-                onClick={() => navigateFullScreen("prev")}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {"<"}
-              </motion.button>
-              <motion.button
-                className="bouton-nav suivant"
-                onClick={() => navigateFullScreen("next")}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {">"}
-              </motion.button>
-            </div>
-
-            <div className="miniatures-plein-ecran">
-              {etageVilla.images.map((image, index) => (
-                <motion.img
-                  key={index}
-                  src={image.url || defaultImage}
-                  alt={`Miniature ${index + 1}`}
-                  className={index === currentFullScreenIndex ? "actif" : ""}
-                  onClick={() => setCurrentFullScreenIndex(index)}
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ duration: 0.3 }}
-                  onError={(e) => {
-                    console.warn(`Failed to load full-screen thumbnail: ${image.url}`);
-                    e.currentTarget.src = defaultImage;
-                  }}
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+    
 
       {/* Modal Visite Virtuelle */}
       <AnimatePresence>

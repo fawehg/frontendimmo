@@ -1336,7 +1336,58 @@
 .conteneur-image-plein-ecran .bouton-nav.suivant {
   right: var(--spacing-md);
 }
+/* Styling for the vendor icon */
+.icon-agent {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #d4af37; /* Gold background for icon */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px;
+  color: #fff; /* White icon color */
+  margin-right: 20px;
+  flex-shrink: 0;
+}
 
+.icon-agent .badge-agent {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.icon-agent .badge-agent span {
+  font-size: 12px;
+  color: #0a1a2b;
+}
+
+/* Styling for WhatsApp link */
+.whatsapp-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+}
+
+.whatsapp-link:hover {
+  color: inherit; /* Prevent color change on hover */
+}
+
+.methode-contact {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  transition: transform 0.3s ease;
+}
 .conteneur-image-plein-ecran .bouton-nav:hover {
   background: rgba(255, 255, 255, 0.3);
 }

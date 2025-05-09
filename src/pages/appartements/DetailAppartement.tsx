@@ -33,6 +33,14 @@ interface Image {
   path: string;
 }
 
+interface Vendeur {
+  id: number;
+  nom: string;
+  prenom: string;
+  email: string;
+  phone?: string;
+}
+
 interface Appartement {
   id: number;
   titre: string;
@@ -51,6 +59,7 @@ interface Appartement {
   images: Image[];
   created_at: string;
   updated_at: string;
+  vendeur: Vendeur | null;
 }
 
 interface SimilarProperty {
@@ -62,6 +71,16 @@ interface SimilarProperty {
   superficie: number;
   etage: number | null;
   image: string;
+}
+
+interface Message {
+  id: number;
+  senderName: string;
+  senderEmail: string;
+  senderPhone: string;
+  content: string;
+  timestamp: string;
+  response?: string;
 }
 
 const CercleProgression: React.FC<{
@@ -120,6 +139,15 @@ const DetailAppartement = () => {
   const [showFullScreen, setShowFullScreen] = useState(false);
   const [currentFullScreenIndex, setCurrentFullScreenIndex] = useState(0);
   const [showVirtualTour, setShowVirtualTour] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const [carouselScrollPosition, setCarouselScrollPosition] = useState(0);
@@ -238,6 +266,68 @@ const DetailAppartement = () => {
       setShowLeftArrow(newPosition > 0);
       setShowRightArrow(newPosition < maxScroll - 1);
     }, 300);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+    setFormSuccess("");
+
+    const { name, email, phone, message } = formData;
+
+    if (!name || !email || !phone || !message) {
+      setFormError("Veuillez remplir tous les champs.");
+      return;
+    }
+
+    const newMessage: Message = {
+      id: messages.length + 1,
+      senderName: name,
+      senderEmail: email,
+      senderPhone: phone,
+      content: message,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      // Mock API call to send message to the backend
+      // In a real app, you would use axios.post to send the message to your backend
+      // e.g., await axios.post(`http://localhost:8000/api/appartements/${id}/messages`, newMessage);
+
+      // Simulate seller response after a delay
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            ...newMessage,
+            response: "Merci pour votre message ! Je vous contacterai bientôt pour discuter des détails.",
+          },
+        ]);
+      }, 2000);
+
+      setMessages((prev) => [...prev, newMessage]);
+      setFormSuccess("Message envoyé avec succès ! Le vendeur vous répondra bientôt.");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (err) {
+      setFormError("Erreur lors de l'envoi du message. Veuillez réessayer.");
+    }
+  };
+
+  // Format phone number for WhatsApp and tel links
+  const formatPhoneForLinks = (phone: string | undefined): string => {
+    if (!phone) return "+21698765432"; // Fallback number
+    const cleanedPhone = phone.replace(/[^\d+]/g, "");
+    return cleanedPhone.startsWith("+") ? cleanedPhone : `+216${cleanedPhone}`;
+  };
+
+  // Format email for mailto links
+  const formatEmailForMailto = (email: string | undefined): string => {
+    return email || "contact@immobilier.tn"; // Fallback email
   };
 
   if (loading)
@@ -459,10 +549,7 @@ const DetailAppartement = () => {
                 whileHover={{ scale: 1.1, boxShadow: "0 0 10px rgba(212, 175, 55, 0.5)" }}
                 transition={{ duration: 0.3 }}
               >
-                <img
-                  src={image.url}
-                  alt={`Miniature ${index + 1}`}
-                />
+                <img src={image.url} alt={`Miniature ${index + 1}`} />
               </motion.div>
             ))}
           </div>
@@ -710,27 +797,27 @@ const DetailAppartement = () => {
                 <FaUser className="icone-entete" />
                 <div className="ligne-decoration"></div>
               </div>
-              <h2>Votre Agent Immobilier</h2>
+              <h2>Le Vendeur</h2>
             </div>
             <div className="contenu-carte">
               <div className="profil-agent">
-                <div className="photo-agent">
-                  <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Agent" />
+                <div className="icon-agent">
+                  <FaUser />
                   <div className="badge-agent">
-                    <span>⭐ 4.9/5</span>
+                    <span>⭐ 4.8/5</span>
                   </div>
                 </div>
                 <div className="details-agent">
-                  <h3>Sophie Martin</h3>
-                  <p className="titre-agent">Agent Immobilier Senior</p>
-                  <p className="experience-agent">10+ ans d'expérience</p>
+                  <h3>{appartement.vendeur ? `${appartement.vendeur.prenom} ${appartement.vendeur.nom}` : "Vendeur non spécifié"}</h3>
+                  <p className="titre-agent">Propriétaire</p>
+                  <p className="experience-agent">Vendeur expérimenté</p>
                   <div className="stats-agent">
                     <div className="stat">
-                      <span>50+</span>
-                      <small>Transactions</small>
+                      <span>20+</span>
+                      <small>Annonces publiées</small>
                     </div>
                     <div className="stat">
-                      <span>98%</span>
+                      <span>95%</span>
                       <small>Satisfaction</small>
                     </div>
                   </div>
@@ -739,44 +826,71 @@ const DetailAppartement = () => {
 
               <div className="methodes-contact">
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode telephone">
-                    <FaPhone />
-                  </div>
-                  <div className="info-methode">
-                    <h4>Appelez-moi</h4>
-                    <p>+216 12 345 678</p>
-                  </div>
+                  <a
+                    href={`tel:${formatPhoneForLinks(appartement.vendeur?.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="phone-link"
+                  >
+                    <div className="icone-methode telephone">
+                      <FaPhone />
+                    </div>
+                    <div className="info-methode">
+                      <h4>Appelez-moi</h4>
+                      <p>{appartement.vendeur?.phone || "+216 98 765 432"}</p>
+                    </div>
+                  </a>
                 </motion.div>
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode whatsapp">
-                    <FaWhatsapp />
-                  </div>
-                  <div className="info-methode">
-                    <h4>WhatsApp</h4>
-                    <p>Envoyez un message</p>
-                  </div>
+                  <a
+                    href={`https://wa.me/${formatPhoneForLinks(appartement.vendeur?.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="whatsapp-link"
+                  >
+                    <div className="icone-methode whatsapp">
+                      <FaWhatsapp />
+                    </div>
+                    <div className="info-methode">
+                      <h4>WhatsApp</h4>
+                      <p>Envoyez un message</p>
+                    </div>
+                  </a>
                 </motion.div>
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode email">
-                    <FaEnvelope />
-                  </div>
-                  <div className="info-methode">
-                    <h4>Email</h4>
-                    <p>sophie@immobilier.tn</p>
-                  </div>
+                  <a
+                    href={`mailto:${formatEmailForMailto(appartement.vendeur?.email)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="email-link"
+                  >
+                    <div className="icone-methode email">
+                      <FaEnvelope />
+                    </div>
+                    <div className="info-methode">
+                      <h4>Email</h4>
+                      <p>{appartement.vendeur?.email || "contact@immobilier.tn"}</p>
+                    </div>
+                  </a>
                 </motion.div>
               </div>
 
               <div className="conteneur-formulaire-contact">
-                <h3 className="titre-formulaire">Ou envoyez un message</h3>
-                <form className="formulaire-contact">
+                <h3 className="titre-formulaire">Envoyez un message au vendeur</h3>
+                <form className="formulaire-contact" onSubmit={handleFormSubmit}>
                   <motion.div
                     className="groupe-formulaire"
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                   >
-                    <input type="text" placeholder="Votre nom complet" />
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Votre nom complet"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -785,7 +899,13 @@ const DetailAppartement = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <input type="email" placeholder="Votre email" />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Votre email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -794,7 +914,13 @@ const DetailAppartement = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <input type="tel" placeholder="Votre téléphone" />
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Votre téléphone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -803,9 +929,16 @@ const DetailAppartement = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <textarea placeholder="Votre message"></textarea>
+                    <textarea
+                      name="message"
+                      placeholder="Votre message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                    ></textarea>
                     <div className="decoration-input"></div>
                   </motion.div>
+                  {formError && <p className="erreur-formulaire">{formError}</p>}
+                  {formSuccess && <p className="succes-formulaire">{formSuccess}</p>}
                   <motion.button
                     type="submit"
                     className="bouton-soumettre"
@@ -820,6 +953,27 @@ const DetailAppartement = () => {
                   </motion.button>
                 </form>
               </div>
+
+              {messages.length > 0 && (
+                <div className="historique-messages">
+                  <h3>Vos messages</h3>
+                  {messages.map((msg) => (
+                    <motion.div
+                      key={msg.id}
+                      className="message"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <p><strong>Vous:</strong> {msg.content}</p>
+                      <p><small>Envoyé le: {new Date(msg.timestamp).toLocaleString()}</small></p>
+                      {msg.response && (
+                        <p><strong>Réponse du vendeur:</strong> {msg.response}</p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -832,86 +986,7 @@ const DetailAppartement = () => {
         <div className="ligne-separateur"></div>
       </div>
 
-      {/* Section Propriétés Similaires */}
-      <section className="section-proprietes-similaires">
-        <motion.div
-          className="entete-section"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <h2>Appartements Similaires</h2>
-          <Link to="/appartements" className="voir-tout">
-            Voir tous <IoIosArrowForward />
-          </Link>
-        </motion.div>
-
-        <div className="conteneur-carrousel">
-          {showLeftArrow && (
-            <motion.button
-              className="fleche-carrousel gauche"
-              onClick={() => handleCarouselScroll("left")}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaArrowLeftIcon />
-            </motion.button>
-          )}
-          <div className="carrousel-proprietes" ref={carouselRef}>
-            {similarProperties.map((property, index) => (
-              <motion.div
-                key={property.id}
-                className="carte-propriete"
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{
-                  y: -10,
-                  rotateY: 5,
-                  rotateX: 5,
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
-                }}
-              >
-                <div className="image-propriete">
-                  <motion.img
-                    src={property.image}
-                    alt={property.titre}
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <span className="prix-propriete">{property.prix.toLocaleString()} TND</span>
-                </div>
-                <div className="details-propriete">
-                  <h3>{property.titre}</h3>
-                  <p className="localisation-propriete">
-                    <FaMapMarkerAlt /> {property.adresse}, {property.ville}
-                  </p>
-                  <div className="caracteristiques-propriete">
-                    <span>
-                      <FaRulerCombined /> {property.superficie}m²
-                    </span>
-                    <span>
-                      <FaBuilding /> Étage {property.etage || "RDC"}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          {showRightArrow && (
-            <motion.button
-              className="fleche-carrousel droite"
-              onClick={() => handleCarouselScroll("right")}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaArrowRight />
-            </motion.button>
-          )}
-        </div>
-      </section>
+     
 
       {/* Visionneuse Plein Écran */}
       <AnimatePresence>

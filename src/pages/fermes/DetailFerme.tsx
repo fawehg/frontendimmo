@@ -39,6 +39,14 @@ interface RelatedModel {
   updated_at: string;
 }
 
+interface Vendeur {
+  id: number;
+  nom: string;
+  prenom: string;
+  email: string;
+  phone?: string;
+}
+
 interface RawFerme {
   id: number;
   titre: string;
@@ -55,6 +63,7 @@ interface RawFerme {
   infrastructures: RelatedModel[];
   images: Image[];
   created_at: string;
+  vendeur: Vendeur | null;
 }
 
 interface Ferme {
@@ -73,6 +82,7 @@ interface Ferme {
   infrastructures: string[];
   images: Image[];
   created_at: string;
+  vendeur: Vendeur | null;
 }
 
 interface SimilarProperty {
@@ -83,6 +93,16 @@ interface SimilarProperty {
   ville: string;
   superficie: number;
   image: string;
+}
+
+interface Message {
+  id: number;
+  senderName: string;
+  senderEmail: string;
+  senderPhone: string;
+  content: string;
+  timestamp: string;
+  response?: string;
 }
 
 const CercleProgression: React.FC<{
@@ -141,9 +161,18 @@ const DetailFerme = () => {
   const [showFullScreen, setShowFullScreen] = useState(false);
   const [currentFullScreenIndex, setCurrentFullScreenIndex] = useState(0);
   const [showVirtualTour, setShowVirtualTour] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
 
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [, setCarouselScrollPosition] = useState(0);
+  const [carouselScrollPosition, setCarouselScrollPosition] = useState(0);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
 
@@ -186,6 +215,7 @@ const DetailFerme = () => {
           orientation: fermeData.orientation ? fermeData.orientation.nom : null,
           environnement: fermeData.environnement ? fermeData.environnement.nom : null,
           infrastructures: fermeData.infrastructures.map((infra) => infra.nom || "Inconnu"),
+          vendeur: fermeData.vendeur,
         };
 
         console.log("Normalized Ferme:", normalizedFerme);
@@ -282,6 +312,68 @@ const DetailFerme = () => {
       setShowLeftArrow(newPosition > 0);
       setShowRightArrow(newPosition < maxScroll - 1);
     }, 300);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+    setFormSuccess("");
+
+    const { name, email, phone, message } = formData;
+
+    if (!name || !email || !phone || !message) {
+      setFormError("Veuillez remplir tous les champs.");
+      return;
+    }
+
+    const newMessage: Message = {
+      id: messages.length + 1,
+      senderName: name,
+      senderEmail: email,
+      senderPhone: phone,
+      content: message,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      // Mock API call to send message to the backend
+      // In a real app, you would use axios.post to send the message to your backend
+      // e.g., await axios.post(`http://localhost:8000/api/fermes/${id}/messages`, newMessage);
+
+      // Simulate seller response after a delay
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            ...newMessage,
+            response: "Merci pour votre message ! Je vous contacterai bientôt pour discuter des détails.",
+          },
+        ]);
+      }, 2000);
+
+      setMessages((prev) => [...prev, newMessage]);
+      setFormSuccess("Message envoyé avec succès ! Le vendeur vous répondra bientôt.");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (err) {
+      setFormError("Erreur lors de l'envoi du message. Veuillez réessayer.");
+    }
+  };
+
+  // Format phone number for WhatsApp and tel links
+  const formatPhoneForLinks = (phone: string | undefined): string => {
+    if (!phone) return "+21698765432"; // Fallback number
+    const cleanedPhone = phone.replace(/[^\d+]/g, "");
+    return cleanedPhone.startsWith("+") ? cleanedPhone : `+216${cleanedPhone}`;
+  };
+
+  // Format email for mailto links
+  const formatEmailForMailto = (email: string | undefined): string => {
+    return email || "contact@immobilier.tn"; // Fallback email
   };
 
   if (loading)
@@ -809,24 +901,24 @@ const DetailFerme = () => {
                 <FaUser className="icone-entete" />
                 <div className="ligne-decoration"></div>
               </div>
-              <h2>Votre Agent Immobilier</h2>
+              <h2>Le Vendeur</h2>
             </div>
             <div className="contenu-carte">
               <div className="profil-agent">
-                <div className="photo-agent">
-                  <img src="https://randomuser.me/api/portraits/men/45.jpg" alt="Agent" />
+                <div className="icon-agent">
+                  <FaUser />
                   <div className="badge-agent">
                     <span>⭐ 4.8/5</span>
                   </div>
                 </div>
                 <div className="details-agent">
-                  <h3>Ahmed Ben Salah</h3>
-                  <p className="titre-agent">Agent Immobilier Agricole</p>
-                  <p className="experience-agent">8+ ans d'expérience</p>
+                  <h3>{ferme.vendeur ? `${ferme.vendeur.prenom} ${ferme.vendeur.nom}` : "Vendeur non spécifié"}</h3>
+                  <p className="titre-agent">Propriétaire</p>
+                  <p className="experience-agent">Vendeur expérimenté</p>
                   <div className="stats-agent">
                     <div className="stat">
-                      <span>40+</span>
-                      <small>Transactions</small>
+                      <span>20+</span>
+                      <small>Annonces publiées</small>
                     </div>
                     <div className="stat">
                       <span>95%</span>
@@ -838,44 +930,71 @@ const DetailFerme = () => {
 
               <div className="methodes-contact">
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode telephone">
-                    <FaPhone />
-                  </div>
-                  <div className="info-methode">
-                    <h4>Appelez-moi</h4>
-                    <p>+216 98 765 432</p>
-                  </div>
+                  <a
+                    href={`tel:${formatPhoneForLinks(ferme.vendeur?.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="phone-link"
+                  >
+                    <div className="icone-methode telephone">
+                      <FaPhone />
+                    </div>
+                    <div className="info-methode">
+                      <h4>Appelez-moi</h4>
+                      <p>{ferme.vendeur?.phone || "+216 98 765 432"}</p>
+                    </div>
+                  </a>
                 </motion.div>
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode whatsapp">
-                    <FaWhatsapp />
-                  </div>
-                  <div className="info-methode">
-                    <h4>WhatsApp</h4>
-                    <p>Envoyez un message</p>
-                  </div>
+                  <a
+                    href={`https://wa.me/${formatPhoneForLinks(ferme.vendeur?.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="whatsapp-link"
+                  >
+                    <div className="icone-methode whatsapp">
+                      <FaWhatsapp />
+                    </div>
+                    <div className="info-methode">
+                      <h4>WhatsApp</h4>
+                      <p>Envoyez un message</p>
+                    </div>
+                  </a>
                 </motion.div>
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode email">
-                    <FaEnvelope />
-                  </div>
-                  <div className="info-methode">
-                    <h4>Email</h4>
-                    <p>ahmed@immobilier.tn</p>
-                  </div>
+                  <a
+                    href={`mailto:${formatEmailForMailto(ferme.vendeur?.email)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="email-link"
+                  >
+                    <div className="icone-methode email">
+                      <FaEnvelope />
+                    </div>
+                    <div className="info-methode">
+                      <h4>Email</h4>
+                      <p>{ferme.vendeur?.email || "contact@immobilier.tn"}</p>
+                    </div>
+                  </a>
                 </motion.div>
               </div>
 
               <div className="conteneur-formulaire-contact">
-                <h3 className="titre-formulaire">Ou envoyez un message</h3>
-                <form className="formulaire-contact">
+                <h3 className="titre-formulaire">Envoyez un message au vendeur</h3>
+                <form className="formulaire-contact" onSubmit={handleFormSubmit}>
                   <motion.div
                     className="groupe-formulaire"
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                   >
-                    <input type="text" placeholder="Votre nom complet" />
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Votre nom complet"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -884,7 +1003,13 @@ const DetailFerme = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <input type="email" placeholder="Votre email" />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Votre email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -893,7 +1018,13 @@ const DetailFerme = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <input type="tel" placeholder="Votre téléphone" />
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Votre téléphone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -902,9 +1033,16 @@ const DetailFerme = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <textarea placeholder="Votre message"></textarea>
+                    <textarea
+                      name="message"
+                      placeholder="Votre message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                    ></textarea>
                     <div className="decoration-input"></div>
                   </motion.div>
+                  {formError && <p className="erreur-formulaire">{formError}</p>}
+                  {formSuccess && <p className="succes-formulaire">{formSuccess}</p>}
                   <motion.button
                     type="submit"
                     className="bouton-soumettre"
@@ -919,6 +1057,27 @@ const DetailFerme = () => {
                   </motion.button>
                 </form>
               </div>
+
+              {messages.length > 0 && (
+                <div className="historique-messages">
+                  <h3>Vos messages</h3>
+                  {messages.map((msg) => (
+                    <motion.div
+                      key={msg.id}
+                      className="message"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <p><strong>Vous:</strong> {msg.content}</p>
+                      <p><small>Envoyé le: {new Date(msg.timestamp).toLocaleString()}</small></p>
+                      {msg.response && (
+                        <p><strong>Réponse du vendeur:</strong> {msg.response}</p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -930,84 +1089,6 @@ const DetailFerme = () => {
         <div className="diamant-separateur"></div>
         <div className="ligne-separateur"></div>
       </div>
-
-      {/* Section Fermes Similaires */}
-      <section className="section-fermes-similaires">
-        <motion.div
-          className="entete-section"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <h2>Fermes Similaires</h2>
-          <Link to="/fermes" className="voir-tout">
-            Voir tous <IoIosArrowForward />
-          </Link>
-        </motion.div>
-
-        <div className="conteneur-carrousel">
-          {showLeftArrow && (
-            <motion.button
-              className="fleche-carrousel gauche"
-              onClick={() => handleCarouselScroll("left")}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaArrowLeftIcon />
-            </motion.button>
-          )}
-          <div className="carrousel-fermes" ref={carouselRef}>
-            {similarProperties.map((property, index) => (
-              <motion.div
-                key={property.id}
-                className="carte-ferme"
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{
-                  y: -10,
-                  rotateY: 5,
-                  rotateX: 5,
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
-                }}
-              >
-                <div className="image-ferme">
-                  <motion.img
-                    src={property.image}
-                    alt={property.titre}
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <span className="prix-ferme">{property.prix.toLocaleString()} TND</span>
-                </div>
-                <div className="details-ferme">
-                  <h3>{property.titre}</h3>
-                  <p className="localisation-ferme">
-                    <FaMapMarkerAlt /> {property.adresse}, {property.ville}
-                  </p>
-                  <div className="caracteristiques-ferme">
-                    <span>
-                      <FaRulerCombined /> {property.superficie}m²
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          {showRightArrow && (
-            <motion.button
-              className="fleche-carrousel droite"
-              onClick={() => handleCarouselScroll("right")}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaArrowRight />
-            </motion.button>
-          )}
-        </div>
-      </section>
 
       {/* Visionneuse Plein Écran */}
       <AnimatePresence>

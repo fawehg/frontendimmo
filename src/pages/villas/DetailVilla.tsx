@@ -34,6 +34,7 @@ import {
 } from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
 
+// Interfaces pour les relations
 interface Ville {
   id: number;
   nom: string;
@@ -59,6 +60,16 @@ interface Environnement {
   nom: string;
 }
 
+// Interface pour le vendeur
+interface Vendeur {
+  id: number;
+  nom: string;
+  prenom: string;
+  email: string;
+  phone?: string;
+}
+
+// Interface pour la villa
 interface Villa {
   id: number;
   type_id: number;
@@ -89,8 +100,10 @@ interface Villa {
   categorie?: Categorie;
   type?: Type;
   environnement?: Environnement;
+  vendeur?: Vendeur | null;
 }
 
+// Interface pour les propriétés similaires
 interface SimilarProperty {
   id: number;
   titre: string;
@@ -102,6 +115,18 @@ interface SimilarProperty {
   image: string;
 }
 
+// Interface pour les messages
+interface Message {
+  id: number;
+  senderName: string;
+  senderEmail: string;
+  senderPhone: string;
+  content: string;
+  timestamp: string;
+  response?: string;
+}
+
+// Composant CercleProgression
 const CercleProgression: React.FC<{
   value: number;
   label: string;
@@ -147,6 +172,7 @@ const CercleProgression: React.FC<{
   );
 };
 
+// Composant principal
 const DetailVilla = () => {
   const { id } = useParams<{ id: string }>();
   const [villa, setVilla] = useState<Villa | null>(null);
@@ -158,6 +184,15 @@ const DetailVilla = () => {
   const [showFullScreen, setShowFullScreen] = useState(false);
   const [currentFullScreenIndex, setCurrentFullScreenIndex] = useState(0);
   const [showVirtualTour, setShowVirtualTour] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    message: "",
+  });
+  const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const [carouselScrollPosition, setCarouselScrollPosition] = useState(0);
@@ -168,13 +203,31 @@ const DetailVilla = () => {
   const y = useTransform(scrollYProgress, [0, 1], [0, -150]);
   const bgGradient = useTransform(scrollYProgress, [0, 1], [0, 90]);
 
+  const defaultImage = "https://via.placeholder.com/800x450?text=Image+non+disponible";
+
+  // Récupération des données de la villa
   useEffect(() => {
     const fetchVilla = async () => {
       try {
         const response = await axios.get<Villa>(`http://localhost:8000/api/villas/${id}`);
-        setVilla(response.data);
+        console.log("API Response:", response.data);
+        const villaData = response.data;
+
+        // Validate images
+        if (!villaData.images || !Array.isArray(villaData.images)) {
+          console.warn("Images field is invalid or not an array:", villaData.images);
+          villaData.images = [];
+        } else {
+          villaData.images = villaData.images.filter(
+            (img) => img && typeof img === "object" && img.url && typeof img.url === "string"
+          );
+        }
+
+        console.log("Normalized Images:", villaData.images);
+        setVilla(villaData);
         setLoading(false);
 
+        // Mock similar properties
         const mockSimilarProperties: SimilarProperty[] = [
           {
             id: 1,
@@ -219,6 +272,7 @@ const DetailVilla = () => {
         ];
         setSimilarProperties(mockSimilarProperties);
       } catch (err) {
+        console.error("Error fetching Villa:", err);
         setError("Impossible de charger les détails de la villa");
         setLoading(false);
       }
@@ -226,14 +280,17 @@ const DetailVilla = () => {
     fetchVilla();
   }, [id]);
 
+  // Gestion du clic sur les miniatures
   const handleThumbnailClick = (index: number) => {
     setActiveImageIndex(index);
   };
 
+  // Gestion des favoris
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);
   };
 
+  // Gestion de l'affichage en plein écran
   const openFullScreen = (index: number) => {
     setCurrentFullScreenIndex(index);
     setShowFullScreen(true);
@@ -244,7 +301,7 @@ const DetailVilla = () => {
   };
 
   const navigateFullScreen = (direction: "prev" | "next") => {
-    if (!villa) return;
+    if (!villa || !villa.images.length) return;
 
     if (direction === "prev") {
       setCurrentFullScreenIndex((prev) =>
@@ -257,6 +314,7 @@ const DetailVilla = () => {
     }
   };
 
+  // Gestion du défilement du carrousel
   const handleCarouselScroll = (direction: "left" | "right") => {
     if (!carouselRef.current) return;
 
@@ -278,6 +336,67 @@ const DetailVilla = () => {
     }, 300);
   };
 
+  // Gestion des entrées du formulaire
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Gestion de la soumission du formulaire
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+    setFormSuccess("");
+
+    const { name, email, phone, message } = formData;
+
+    if (!name || !email || !phone || !message) {
+      setFormError("Veuillez remplir tous les champs.");
+      return;
+    }
+
+    const newMessage: Message = {
+      id: messages.length + 1,
+      senderName: name,
+      senderEmail: email,
+      senderPhone: phone,
+      content: message,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      // Mock API call to send message
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            ...newMessage,
+            response: "Merci pour votre message ! Je vous contacterai bientôt pour discuter des détails.",
+          },
+        ]);
+      }, 2000);
+
+      setMessages((prev) => [...prev, newMessage]);
+      setFormSuccess("Message envoyé avec succès ! Le vendeur vous répondra bientôt.");
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    } catch (err) {
+      setFormError("Erreur lors de l'envoi du message. Veuillez réessayer.");
+    }
+  };
+
+  // Format phone number for WhatsApp and tel links
+  const formatPhoneForLinks = (phone: string | undefined): string => {
+    if (!phone) return "+21698765432"; // Fallback number
+    const cleanedPhone = phone.replace(/[^\d+]/g, "");
+    return cleanedPhone.startsWith("+") ? cleanedPhone : `+216${cleanedPhone}`;
+  };
+
+  // Format email for mailto links
+  const formatEmailForMailto = (email: string | undefined): string => {
+    return email || "contact@immobilier.tn"; // Fallback email
+  };
+
+  // Gestion du chargement
   if (loading)
     return (
       <motion.div
@@ -291,6 +410,7 @@ const DetailVilla = () => {
       </motion.div>
     );
 
+  // Gestion des erreurs
   if (error)
     return (
       <motion.div
@@ -308,6 +428,7 @@ const DetailVilla = () => {
       </motion.div>
     );
 
+  // Gestion de l'absence de villa
   if (!villa)
     return (
       <motion.div
@@ -325,6 +446,8 @@ const DetailVilla = () => {
       </motion.div>
     );
 
+  const hasImages = villa.images && villa.images.length > 0;
+
   return (
     <div className="detail-villa">
       <Header />
@@ -341,7 +464,7 @@ const DetailVilla = () => {
         <div
           className="fond-parallaxe"
           style={{
-            backgroundImage: `url(${villa.images[0]?.url || "https://via.placeholder.com/1920x1080"})`,
+            backgroundImage: `url(${hasImages ? villa.images[0]?.url : defaultImage})`,
             backgroundAttachment: "fixed",
           }}
         />
@@ -438,75 +561,94 @@ const DetailVilla = () => {
       <section className="section-galerie">
         <div className="conteneur-galerie">
           <div className="galerie-principale">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeImageIndex}
-                className="conteneur-image-principale"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.5 }}
-              >
-                <motion.img
-                  src={villa.images[activeImageIndex]?.url || "https://via.placeholder.com/800x450"}
-                  alt={`${villa.titre} ${activeImageIndex + 1}`}
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ duration: 0.3 }}
-                />
-                <motion.button
-                  className="bouton-agrandir"
-                  onClick={() => openFullScreen(activeImageIndex)}
-                  whileHover={{ scale: 1.1, rotate: 90 }}
+            {hasImages ? (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeImageIndex}
+                  className="conteneur-image-principale"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.5 }}
                 >
-                  <FaExpand />
+                  <motion.img
+                    src={villa.images[activeImageIndex]?.url || defaultImage}
+                    alt={`${villa.titre} ${activeImageIndex + 1}`}
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                    onError={(e) => {
+                      console.warn(`Failed to load image: ${villa.images[activeImageIndex]?.url}`);
+                      e.currentTarget.src = defaultImage;
+                    }}
+                  />
+                  <motion.button
+                    className="bouton-agrandir"
+                    onClick={() => openFullScreen(activeImageIndex)}
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                  >
+                    <FaExpand />
+                  </motion.button>
+                </motion.div>
+              </AnimatePresence>
+            ) : (
+              <div className="no-images">
+                <p>Aucune image disponible</p>
+                <img src={defaultImage} alt="Placeholder" />
+              </div>
+            )}
+
+            {hasImages && (
+              <div className="controles-galerie">
+                <motion.button
+                  className="bouton-nav precedent"
+                  onClick={() =>
+                    handleThumbnailClick(
+                      activeImageIndex === 0 ? villa.images.length - 1 : activeImageIndex - 1
+                    )
+                  }
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {"<"}
                 </motion.button>
-              </motion.div>
-            </AnimatePresence>
+                <motion.button
+                  className="bouton-nav suivant"
+                  onClick={() =>
+                    handleThumbnailClick(
+                      activeImageIndex === villa.images.length - 1 ? 0 : activeImageIndex + 1
+                    )
+                  }
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {">"}
+                </motion.button>
+              </div>
+            )}
+          </div>
 
-            <div className="controles-galerie">
-              <motion.button
-                className="bouton-nav precedent"
-                onClick={() =>
-                  handleThumbnailClick(
-                    activeImageIndex === 0 ? villa.images.length - 1 : activeImageIndex - 1
-                  )
-                }
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {"<"}
-              </motion.button>
-              <motion.button
-                className="bouton-nav suivant"
-                onClick={() =>
-                  handleThumbnailClick(
-                    activeImageIndex === villa.images.length - 1 ? 0 : activeImageIndex + 1
-                  )
-                }
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                {">"}
-              </motion.button>
+          {hasImages && (
+            <div className="defileur-miniatures">
+              {villa.images.map((image, index) => (
+                <motion.div
+                  key={index}
+                  className={`conteneur-miniature ${index === activeImageIndex ? "actif" : ""}`}
+                  onClick={() => handleThumbnailClick(index)}
+                  whileHover={{ scale: 1.1, boxShadow: "0 0 10px rgba(212, 175, 55, 0.5)" }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <img
+                    src={image.url || defaultImage}
+                    alt={`Miniature ${index + 1}`}
+                    onError={(e) => {
+                      console.warn(`Failed to load thumbnail: ${image.url}`);
+                      e.currentTarget.src = defaultImage;
+                    }}
+                  />
+                </motion.div>
+              ))}
             </div>
-          </div>
-
-          <div className="defileur-miniatures">
-            {villa.images.map((image, index) => (
-              <motion.div
-                key={index}
-                className={`conteneur-miniature ${index === activeImageIndex ? "actif" : ""}`}
-                onClick={() => handleThumbnailClick(index)}
-                whileHover={{ scale: 1.1, boxShadow: "0 0 10px rgba(212, 175, 55, 0.5)" }}
-                transition={{ duration: 0.3 }}
-              >
-                <img
-                  src={image.url}
-                  alt={`Miniature ${index + 1}`}
-                />
-              </motion.div>
-            ))}
-          </div>
+          )}
         </div>
       </section>
 
@@ -572,12 +714,14 @@ const DetailVilla = () => {
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Caractéristiques */}
           <motion.div
             className="carte-detail carte-caracteristiques"
@@ -696,12 +840,14 @@ const DetailVilla = () => {
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Info */}
           <motion.div
             className="carte-detail carte-info"
@@ -722,7 +868,7 @@ const DetailVilla = () => {
               <div className="mini-carte">
                 <div className="apercu-carte">
                   <iframe
-                    src={`https://maps.google.com/maps?q=${villa.ville?.nom},${villa.delegation?.nom}&output=embed`}
+                    src={`https://maps.google.com/maps?q=${villa.ville?.nom || "Tunisie"},${villa.delegation?.nom || "Tunisie"}&output=embed`}
                     frameBorder="0"
                     allowFullScreen
                   ></iframe>
@@ -730,7 +876,7 @@ const DetailVilla = () => {
                 <div className="superposition-carte">
                   <FaMapMarkerAlt className="pin-carte" />
                   <div className="infobulle-carte">
-                    {villa.adresse}, {villa.ville?.nom}
+                    {villa.adresse}, {villa.ville?.nom || "Non défini"}
                   </div>
                 </div>
               </div>
@@ -760,7 +906,7 @@ const DetailVilla = () => {
                   <div className="texte-info">
                     <h4>Localisation</h4>
                     <p>
-                      {villa.delegation?.nom}, {villa.ville?.nom}
+                      {villa.delegation?.nom || "Non spécifié"}, {villa.ville?.nom || "Non spécifié"}
                     </p>
                   </div>
                 </div>
@@ -776,12 +922,14 @@ const DetailVilla = () => {
               </div>
             </div>
           </motion.div>
+
           {/* Séparateur de Section */}
           <div className="separateur-section">
             <div className="ligne-separateur"></div>
             <div className="diamant-separateur"></div>
             <div className="ligne-separateur"></div>
           </div>
+
           {/* Carte Contact */}
           <motion.div
             className="carte-detail carte-contact"
@@ -796,27 +944,27 @@ const DetailVilla = () => {
                 <FaUser className="icone-entete" />
                 <div className="ligne-decoration"></div>
               </div>
-              <h2>Votre Agent Immobilier</h2>
+              <h2>Le Vendeur</h2>
             </div>
             <div className="contenu-carte">
               <div className="profil-agent">
-                <div className="photo-agent">
-                  <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Agent" />
+                <div className="icon-agent">
+                  <FaUser />
                   <div className="badge-agent">
-                    <span>⭐ 4.9/5</span>
+                    <span>⭐ 4.8/5</span>
                   </div>
                 </div>
                 <div className="details-agent">
-                  <h3>Sophie Martin</h3>
-                  <p className="titre-agent">Agent Immobilier Senior</p>
-                  <p className="experience-agent">10+ ans d'expérience</p>
+                  <h3>{villa.vendeur ? `${villa.vendeur.prenom} ${villa.vendeur.nom}` : "Vendeur non spécifié"}</h3>
+                  <p className="titre-agent">Propriétaire</p>
+                  <p className="experience-agent">Vendeur expérimenté</p>
                   <div className="stats-agent">
                     <div className="stat">
-                      <span>50+</span>
-                      <small>Transactions</small>
+                      <span>20+</span>
+                      <small>Annonces publiées</small>
                     </div>
                     <div className="stat">
-                      <span>98%</span>
+                      <span>95%</span>
                       <small>Satisfaction</small>
                     </div>
                   </div>
@@ -825,44 +973,71 @@ const DetailVilla = () => {
 
               <div className="methodes-contact">
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode telephone">
-                    <FaPhone />
-                  </div>
-                  <div className="info-methode">
-                    <h4>Appelez-moi</h4>
-                    <p>+216 12 345 678</p>
-                  </div>
+                  <a
+                    href={`tel:${formatPhoneForLinks(villa.vendeur?.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="phone-link"
+                  >
+                    <div className="icone-methode telephone">
+                      <FaPhone />
+                    </div>
+                    <div className="info-methode">
+                      <h4>Appelez-moi</h4>
+                      <p>{villa.vendeur?.phone || "+216 98 765 432"}</p>
+                    </div>
+                  </a>
                 </motion.div>
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode whatsapp">
-                    <FaWhatsapp />
-                  </div>
-                  <div className="info-methode">
-                    <h4>WhatsApp</h4>
-                    <p>Envoyez un message</p>
-                  </div>
+                  <a
+                    href={`https://wa.me/${formatPhoneForLinks(villa.vendeur?.phone)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="whatsapp-link"
+                  >
+                    <div className="icone-methode whatsapp">
+                      <FaWhatsapp />
+                    </div>
+                    <div className="info-methode">
+                      <h4>WhatsApp</h4>
+                      <p>Envoyez un message</p>
+                    </div>
+                  </a>
                 </motion.div>
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <div className="icone-methode email">
-                    <FaEnvelope />
-                  </div>
-                  <div className="info-methode">
-                    <h4>Email</h4>
-                    <p>sophie@immobilier.tn</p>
-                  </div>
+                  <a
+                    href={`mailto:${formatEmailForMailto(villa.vendeur?.email)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="email-link"
+                  >
+                    <div className="icone-methode email">
+                      <FaEnvelope />
+                    </div>
+                    <div className="info-methode">
+                      <h4>Email</h4>
+                      <p>{villa.vendeur?.email || "contact@immobilier.tn"}</p>
+                    </div>
+                  </a>
                 </motion.div>
               </div>
 
               <div className="conteneur-formulaire-contact">
-                <h3 className="titre-formulaire">Ou envoyez un message</h3>
-                <form className="formulaire-contact">
+                <h3 className="titre-formulaire">Envoyez un message au vendeur</h3>
+                <form className="formulaire-contact" onSubmit={handleFormSubmit}>
                   <motion.div
                     className="groupe-formulaire"
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                   >
-                    <input type="text" placeholder="Votre nom complet" />
+                    <input
+                      type="text"
+                      name="name"
+                      placeholder="Votre nom complet"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -871,7 +1046,13 @@ const DetailVilla = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <input type="email" placeholder="Votre email" />
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Votre email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -880,7 +1061,13 @@ const DetailVilla = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <input type="tel" placeholder="Votre téléphone" />
+                    <input
+                      type="tel"
+                      name="phone"
+                      placeholder="Votre téléphone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                    />
                     <div className="decoration-input"></div>
                   </motion.div>
                   <motion.div
@@ -889,9 +1076,16 @@ const DetailVilla = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <textarea placeholder="Votre message"></textarea>
+                    <textarea
+                      name="message"
+                      placeholder="Votre message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                    ></textarea>
                     <div className="decoration-input"></div>
                   </motion.div>
+                  {formError && <p className="erreur-formulaire">{formError}</p>}
+                  {formSuccess && <p className="succes-formulaire">{formSuccess}</p>}
                   <motion.button
                     type="submit"
                     className="bouton-soumettre"
@@ -906,16 +1100,39 @@ const DetailVilla = () => {
                   </motion.button>
                 </form>
               </div>
+
+              {messages.length > 0 && (
+                <div className="historique-messages">
+                  <h3>Vos messages</h3>
+                  {messages.map((msg) => (
+                    <motion.div
+                      key={msg.id}
+                      className="message"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <p><strong>Vous:</strong> {msg.content}</p>
+                      <p><small>Envoyé le: {new Date(msg.timestamp).toLocaleString()}</small></p>
+                      {msg.response && (
+                        <p><strong>Réponse du vendeur:</strong> {msg.response}</p>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         </div>
       </section>
+
       {/* Séparateur de Section */}
       <div className="separateur-section">
         <div className="ligne-separateur"></div>
         <div className="diamant-separateur"></div>
         <div className="ligne-separateur"></div>
       </div>
+
       {/* Section Propriétés Similaires */}
       <section className="section-proprietes-similaires">
         <motion.div
@@ -999,7 +1216,7 @@ const DetailVilla = () => {
 
       {/* Visionneuse Plein Écran */}
       <AnimatePresence>
-        {showFullScreen && (
+        {showFullScreen && hasImages && (
           <motion.div
             className="visionneuse-plein-ecran"
             initial={{ opacity: 0 }}
@@ -1016,11 +1233,15 @@ const DetailVilla = () => {
 
             <div className="conteneur-image-plein-ecran">
               <motion.img
-                src={villa.images[currentFullScreenIndex]?.url || "https://via.placeholder.com/1200x800"}
+                src={villa.images[currentFullScreenIndex]?.url || defaultImage}
                 alt={`Plein écran ${currentFullScreenIndex + 1}`}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5 }}
+                onError={(e) => {
+                  console.warn(`Failed to load full-screen image: ${villa.images[currentFullScreenIndex]?.url}`);
+                  e.currentTarget.src = defaultImage;
+                }}
               />
               <motion.button
                 className="bouton-nav precedent"
@@ -1044,12 +1265,16 @@ const DetailVilla = () => {
               {villa.images.map((image, index) => (
                 <motion.img
                   key={index}
-                  src={image.url}
+                  src={image.url || defaultImage}
                   alt={`Miniature ${index + 1}`}
                   className={index === currentFullScreenIndex ? "actif" : ""}
                   onClick={() => setCurrentFullScreenIndex(index)}
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.3 }}
+                  onError={(e) => {
+                    console.warn(`Failed to load full-screen thumbnail: ${image.url}`);
+                    e.currentTarget.src = defaultImage;
+                  }}
                 />
               ))}
             </div>

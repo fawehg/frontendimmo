@@ -19,6 +19,8 @@ import DetailBureau from './pages/bureaux/DetailBureau';
 import DetailEtageVilla from './pages/etagevillas/DetailEtageVilla';
 import DetailTerrain from './pages/terrains/DetailTerrain';
 import DetailFerme from './pages/fermes/DetailFerme';
+import MesAnnonces from './pages/vendeur/VendorProperties';
+
 const App = () => {
   const [darkMode, ] = useState(false);
 
@@ -47,6 +49,7 @@ const App = () => {
           <Route path="/etage-villa/:id" element={<DetailEtageVilla/>} />
           <Route path="/terrain/:id" element={<DetailTerrain/>} />
           <Route path="/ferme/:id" element={<DetailFerme/>} />
+          <Route path="/mes-annonces" element={<MesAnnonces/>} />
 
           <Route path="/all-properties" element={<AllProperties />} />
         </Routes>
