@@ -30,7 +30,7 @@ import "./home.css";
 import Header from "../Header";
 import Footer from "../Footer";
 import { HiOfficeBuilding } from "react-icons/hi";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Added useNavigate
 import { useFavorites } from "../context/FavoritesContext";
 
 // Interfaces
@@ -332,6 +332,7 @@ const Home: React.FC = () => {
   });
 
   const { favorites, toggleFavorite } = useFavorites();
+  const navigate = useNavigate(); // Added for navigation
 
   const { scrollYProgress } = useScroll({
     target: propertyListRef,
@@ -748,6 +749,17 @@ const Home: React.FC = () => {
     setDelegations([]);
   };
 
+  const handleSearch = () => {
+    // Construct query parameters from filters
+    const queryParams = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        queryParams.append(key, value);
+      }
+    });
+    navigate(`/all-properties?${queryParams.toString()}`);
+  };
+
   if (loading) {
     return (
       <div className="conteneur-chargement">
@@ -964,7 +976,7 @@ const Home: React.FC = () => {
               )}
 
               <div className="form-group-row">
-                <button type="button" className="search-button" onClick={scrollToRecentProperties}>
+                <button type="button" className="search-button" onClick={handleSearch}>
                   <FaSearch className="icon" /> RECHERCHE
                 </button>
               </div>

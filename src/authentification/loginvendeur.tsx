@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
-import { FaUser, FaEnvelope, FaLock, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaMapMarkerAlt, FaPhone } from 'react-icons/fa';
 import axios from 'axios';
 import Header from "../Header";
 import Footer from "../Footer";
@@ -13,6 +13,7 @@ interface AuthResponse {
     nom: string;
     prenom: string;
     email: string;
+    phone?: string; // Ajout pour compatibilité
   };
   token: string;
 }
@@ -22,6 +23,7 @@ interface FormState {
   prenom: string;
   ville: string;
   adresse: string;
+  phone: string; // Nouveau champ
   email: string;
   password: string;
   confirmationMotDePasse: string;
@@ -30,6 +32,7 @@ interface FormState {
     prenom: string;
     ville: string;
     adresse: string;
+    phone: string; // Nouvelle erreur
     email: string;
     password: string;
     confirmationMotDePasse: string;
@@ -44,6 +47,7 @@ const Login = () => {
     prenom: '',
     ville: '',
     adresse: '',
+    phone: '', // Initialisation
     email: '',
     password: '',
     confirmationMotDePasse: '',
@@ -52,6 +56,7 @@ const Login = () => {
       prenom: '',
       ville: '',
       adresse: '',
+      phone: '', // Initialisation
       email: '',
       password: '',
       confirmationMotDePasse: '',
@@ -71,12 +76,13 @@ const Login = () => {
   };
 
   const validateForm = (): boolean => {
-    const { nom, prenom, ville, adresse, email, password, confirmationMotDePasse } = state;
+    const { nom, prenom, ville, adresse, phone, email, password, confirmationMotDePasse } = state;
     const newErrors = {
       nom: !nom ? 'Le nom est requis' : '',
       prenom: !prenom ? 'Le prénom est requis' : '',
       ville: !ville ? 'La ville est requise' : '',
       adresse: !adresse ? 'L\'adresse est requise' : '',
+      phone: phone && !/^[0-9\s\-\+\(\)]{10,15}$/.test(phone) ? 'Numéro de téléphone invalide' : '', // Validation optionnelle
       email: !email ? 'L\'email est requis' : !/^\S+@\S+\.\S+$/.test(email) ? 'Email invalide' : '',
       password: !password ? 'Le mot de passe est requis' : password.length < 6 ? 'Le mot de passe doit contenir au moins 6 caractères' : '',
       confirmationMotDePasse: password !== confirmationMotDePasse ? 'Les mots de passe ne correspondent pas' : ''
@@ -97,6 +103,7 @@ const Login = () => {
         prenom: state.prenom,
         ville: state.ville,
         adresse: state.adresse,
+        phone: state.phone , // Envoie null si vide
         email: state.email,
         password: state.password,
         password_confirmation: state.confirmationMotDePasse,
@@ -106,7 +113,6 @@ const Login = () => {
       localStorage.setItem('role', 'vendeur');
       localStorage.setItem('prenom', response.data.vendeur.prenom);
       
-      // Force la mise à jour du header
       window.dispatchEvent(new Event('storage'));
       
       navigate('/vendeur-dashboard');
@@ -157,18 +163,20 @@ const Login = () => {
           <form onSubmit={handleSubmitSignup} className="auth-form">
             <h1>Créer un compte</h1>
             
-            {['nom', 'prenom', 'ville', 'adresse', 'email', 'password', 'confirmationMotDePasse'].map((field) => (
+            {['nom', 'prenom', 'ville', 'phone', 'adresse', 'email', 'password', 'confirmationMotDePasse'].map((field) => (
               <div key={field} className="login-input-container">
                 {field === 'nom' || field === 'prenom' ? <FaUser className="login-icon" /> :
-                 field === 'ville' ?<HiOfficeBuilding  className="login-icon" /> :
-                  field === 'adresse' ? <FaMapMarkerAlt className="login-icon" /> :
+                 field === 'ville' ? <HiOfficeBuilding className="login-icon" /> :
+                 field === 'phone' ? <FaPhone className="login-icon" /> : // Nouvelle icône
+                 field === 'adresse' ? <FaMapMarkerAlt className="login-icon" /> :
                  field === 'email' ? <FaEnvelope className="login-icon" /> : <FaLock className="login-icon" />}
                 
                 <input
                   className="login-input-field"
-                  type={field.includes('password') ? 'password' : 'text'}
+                  type={field.includes('password') ? 'password' : field === 'phone' ? 'tel' : 'text'}
                   placeholder={
                     field === 'confirmationMotDePasse' ? 'Confirmation du mot de passe' :
+                    field === 'phone' ? 'Téléphone (+123 456 7890)' : // Placeholder spécifique
                     field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')
                   }
                   name={field}
@@ -187,7 +195,6 @@ const Login = () => {
           </form>
         </div>
 
-        {/* Formulaire de connexion */}
         <div className="login-form-container login-form-container--signin">
           <form onSubmit={handleSubmitSignin} className="auth-form">
             <h1>Connexion</h1>
@@ -228,7 +235,6 @@ const Login = () => {
           </form>
         </div>
 
-        {/* Overlay pour l'animation */}
         <div className="login-overlay-container">
           <div className="login-overlay">
             <div className="login-overlay-panel login-overlay-panel--left">

@@ -312,14 +312,19 @@ const DetailMaison = () => {
 
   // Format phone number for WhatsApp and tel links
   const formatPhoneForLinks = (phone: string | undefined): string => {
-    if (!phone) return "+21698765432"; // Fallback number
-    const cleanedPhone = phone.replace(/[^\d+]/g, "");
-    return cleanedPhone.startsWith("+") ? cleanedPhone : `+216${cleanedPhone}`;
+    if (!phone) return ""; // Retourne vide si pas de numéro
+    const cleanedPhone = phone.replace(/[^\d+]/g, ""); // Nettoie les caractères non numériques sauf +
+    return cleanedPhone.startsWith("+") ? cleanedPhone : `+216${cleanedPhone}`; // Ajoute +216 si nécessaire
   };
 
   // Format email for mailto links
   const formatEmailForMailto = (email: string | undefined): string => {
     return email || "contact@immobilier.tn"; // Fallback email
+  };
+
+  // Validation du numéro de téléphone
+  const isValidPhone = (phone: string | undefined): boolean => {
+    return !!phone && /^[0-9\s\-\+\(\)]{10,15}$/.test(phone);
   };
 
   // Gestion du chargement
@@ -840,38 +845,44 @@ const DetailMaison = () => {
               </div>
 
               <div className="methodes-contact">
-                <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <a
-                    href={`tel:${formatPhoneForLinks(maison.vendeur?.phone)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="phone-link"
-                  >
-                    <div className="icone-methode telephone">
-                      <FaPhone />
-                    </div>
-                    <div className="info-methode">
-                      <h4>Appelez-moi</h4>
-                      <p>{maison.vendeur?.phone || "+216 98 765 432"}</p>
-                    </div>
-                  </a>
-                </motion.div>
-                <motion.div className="methode-contact" whileHover={{ y: -5 }}>
-                  <a
-                    href={`https://wa.me/${formatPhoneForLinks(maison.vendeur?.phone)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="whatsapp-link"
-                  >
-                    <div className="icone-methode whatsapp">
-                      <FaWhatsapp />
-                    </div>
-                    <div className="info-methode">
-                      <h4>WhatsApp</h4>
-                      <p>Envoyez un message</p>
-                    </div>
-                  </a>
-                </motion.div>
+                {isValidPhone(maison.vendeur?.phone) ? (
+                  <>
+                    <motion.div className="methode-contact" whileHover={{ y: -5 }}>
+                      <a
+                        href={`tel:${formatPhoneForLinks(maison.vendeur?.phone)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="phone-link"
+                      >
+                        <div className="icone-methode telephone">
+                          <FaPhone />
+                        </div>
+                        <div className="info-methode">
+                          <h4>Appelez-moi</h4>
+                          <p>{maison.vendeur?.phone}</p>
+                        </div>
+                      </a>
+                    </motion.div>
+                    <motion.div className="methode-contact" whileHover={{ y: -5 }}>
+                      <a
+                        href={`https://wa.me/${formatPhoneForLinks(maison.vendeur?.phone)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="whatsapp-link"
+                      >
+                        <div className="icone-methode whatsapp">
+                          <FaWhatsapp />
+                        </div>
+                        <div className="info-methode">
+                          <h4>WhatsApp</h4>
+                          <p>Envoyez un message</p>
+                        </div>
+                      </a>
+                    </motion.div>
+                  </>
+                ) : (
+                  <p className="no-phone">Numéro de téléphone non disponible</p>
+                )}
                 <motion.div className="methode-contact" whileHover={{ y: -5 }}>
                   <a
                     href={`mailto:${formatEmailForMailto(maison.vendeur?.email)}`}
@@ -1000,8 +1011,6 @@ const DetailMaison = () => {
         <div className="diamant-separateur"></div>
         <div className="ligne-separateur"></div>
       </div>
-
-    
 
       {/* Visionneuse Plein Écran */}
       <AnimatePresence>

@@ -1,7 +1,17 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { FaSearch, FaChevronLeft, FaChevronRight, FaHome, FaHouseUser, FaBuilding, FaStore, FaCity } from "react-icons/fa";
-import { Link, useSearchParams } from "react-router-dom";
+import {
+  FaSearch,
+  FaChevronLeft,
+  FaChevronRight,
+  FaHome,
+  FaHouseUser,
+  FaBuilding,
+  FaStore,
+  FaCity,
+  FaRedoAlt,
+} from "react-icons/fa";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import "./allProperties.css";
 
 // Interfaces
@@ -54,7 +64,7 @@ interface Maison {
   type: string;
   created_at: string;
   updated_at: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
 }
 
 interface Appartement {
@@ -79,7 +89,7 @@ interface Appartement {
   environnements: string[];
   created_at: string;
   updated_at: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
 }
 
 interface Villa {
@@ -113,7 +123,7 @@ interface Villa {
   type: string;
   created_at: string;
   updated_at: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
 }
 
 interface Bureau {
@@ -137,7 +147,7 @@ interface Bureau {
   updated_at: string;
   ville_id: number;
   delegation_id: number;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
 }
 
 interface Ferme {
@@ -159,7 +169,7 @@ interface Ferme {
   updated_at: string;
   ville_id: number;
   delegation_id: number;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
 }
 
 interface Terrain {
@@ -184,7 +194,7 @@ interface Terrain {
   updated_at: string;
   ville_id: number;
   delegation_id: number;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
 }
 
 interface EtageVilla {
@@ -207,7 +217,7 @@ interface EtageVilla {
   created_at: string;
   ville_id: number;
   delegation_id: number;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
 }
 
 interface Property {
@@ -242,7 +252,7 @@ const fetchWithRetry = async (url: string, retries = 3, delay = 1000) => {
     try {
       const response = await axios.get(url);
       return response;
-    } catch (error) {
+    } catch (error: any) {
       if (error.response?.status === 429 && i < retries - 1) {
         const waitTime = delay * 2 ** i; // Exponential backoff: 1s, 2s, 4s
         console.warn(`Rate limit hit for ${url}, retrying after ${waitTime}ms...`);
@@ -256,6 +266,7 @@ const fetchWithRetry = async (url: string, retries = 3, delay = 1000) => {
 
 const AllProperties: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [villes, setVilles] = useState<Ville[]>([]);
   const [delegations, setDelegations] = useState<Delegation[]>([]);
   const [categories, setCategories] = useState<Categorie[]>([]);
@@ -273,29 +284,58 @@ const AllProperties: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
-    type: "",
+    type: searchParams.get("type") || "",
     categorie: searchParams.get("categorie") || "",
-    ville: "",
-    delegation: "",
-    chambres: "",
-    douches: "",
-    sallesEau: "",
-    suites: "",
-    prixMin: "",
-    prixMax: "",
-    superficieMin: "",
-    superficieMax: "",
-    piscine: "",
-    nombreBureaux: "",
-    infrastructures: "",
-    permisConstruction: "",
-    cloture: "",
-    surfaceConstructibleMin: "",
-    numeroEtage: "",
-    accesIndependant: "",
-    parkingInclus: "",
+    ville: searchParams.get("ville") || "",
+    delegation: searchParams.get("delegation") || "",
+    chambres: searchParams.get("chambres") || "",
+    douches: searchParams.get("douches") || "",
+    sallesEau: searchParams.get("sallesEau") || "",
+    suites: searchParams.get("suites") || "",
+    prixMin: searchParams.get("prixMin") || "",
+    prixMax: searchParams.get("prixMax") || "",
+    superficieMin: searchParams.get("superficieMin") || "",
+    superficieMax: searchParams.get("superficieMax") || "",
+    piscine: searchParams.get("piscine") || "",
+    nombreBureaux: searchParams.get("nombreBureaux") || "",
+    infrastructures: searchParams.get("infrastructures") || "",
+    permisConstruction: searchParams.get("permisConstruction") || "",
+    cloture: searchParams.get("cloture") || "",
+    surfaceConstructibleMin: searchParams.get("surfaceConstructibleMin") || "",
+    numeroEtage: searchParams.get("numeroEtage") || "",
+    accesIndependant: searchParams.get("accesIndependant") || "",
+    parkingInclus: searchParams.get("parkingInclus") || "",
   });
 
+  // Sync filters with searchParams changes
+  useEffect(() => {
+    const newFilters = {
+      type: searchParams.get("type") || "",
+      categorie: searchParams.get("categorie") || "",
+      ville: searchParams.get("ville") || "",
+      delegation: searchParams.get("delegation") || "",
+      chambres: searchParams.get("chambres") || "",
+      douches: searchParams.get("douches") || "",
+      sallesEau: searchParams.get("sallesEau") || "",
+      suites: searchParams.get("suites") || "",
+      prixMin: searchParams.get("prixMin") || "",
+      prixMax: searchParams.get("prixMax") || "",
+      superficieMin: searchParams.get("superficieMin") || "",
+      superficieMax: searchParams.get("superficieMax") || "",
+      piscine: searchParams.get("piscine") || "",
+      nombreBureaux: searchParams.get("nombreBureaux") || "",
+      infrastructures: searchParams.get("infrastructures") || "",
+      permisConstruction: searchParams.get("permisConstruction") || "",
+      cloture: searchParams.get("cloture") || "",
+      surfaceConstructibleMin: searchParams.get("surfaceConstructibleMin") || "",
+      numeroEtage: searchParams.get("numeroEtage") || "",
+      accesIndependant: searchParams.get("accesIndependant") || "",
+      parkingInclus: searchParams.get("parkingInclus") || "",
+    };
+    setFilters(newFilters);
+  }, [searchParams]);
+
+  // Fetch initial data (villes, categories, types, and delegations)
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -307,9 +347,21 @@ const AllProperties: React.FC = () => {
         const cachedTypes = localStorage.getItem("types");
 
         if (cachedVilles && cachedCategories && cachedTypes) {
-          setVilles(JSON.parse(cachedVilles));
-          setCategories(JSON.parse(cachedCategories));
-          setTypes(JSON.parse(cachedTypes));
+          const parsedVilles = JSON.parse(cachedVilles);
+          const parsedCategories = JSON.parse(cachedCategories);
+          const parsedTypes = JSON.parse(cachedTypes);
+          setVilles(parsedVilles);
+          setCategories(parsedCategories);
+          setTypes(parsedTypes);
+
+          // Fetch delegations if ville is in query params
+          const villeParam = searchParams.get("ville");
+          if (villeParam) {
+            const selectedVille = parsedVilles.find((v: Ville) => v.nom === villeParam);
+            if (selectedVille) {
+              await debouncedFetchDelegations(selectedVille.id);
+            }
+          }
         } else {
           const [villesResponse, categoriesResponse, typesResponse] = await Promise.all([
             fetchWithRetry("http://localhost:8000/api/villes"),
@@ -325,22 +377,25 @@ const AllProperties: React.FC = () => {
           localStorage.setItem("villes", JSON.stringify(villesResponse.data));
           localStorage.setItem("categories", JSON.stringify(categoriesResponse.data));
           localStorage.setItem("types", JSON.stringify(typesResponse.data));
-        }
 
-        // Validate categorie query parameter
-        const categorieParam = searchParams.get("categorie");
-        if (categorieParam && !categories.some((c) => c.nom === categorieParam)) {
-          setFilters((prev) => ({ ...prev, categorie: "" }));
+          // Fetch delegations if ville is in query params
+          const villeParam = searchParams.get("ville");
+          if (villeParam) {
+            const selectedVille = villesResponse.data.find((v: Ville) => v.nom === villeParam);
+            if (selectedVille) {
+              await debouncedFetchDelegations(selectedVille.id);
+            }
+          }
         }
 
         setError(null);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching initial data:", error);
-        if (error.response?.status === 429) {
-          setError("Trop de requêtes. Veuillez réessayer dans quelques secondes.");
-        } else {
-          setError("Erreur lors du chargement des données initiales.");
-        }
+        setError(
+          error.response?.status === 429
+            ? "Trop de requêtes. Veuillez réessayer dans quelques secondes."
+            : "Erreur lors du chargement des données initiales.",
+        );
       } finally {
         setLoading(false);
       }
@@ -349,12 +404,11 @@ const AllProperties: React.FC = () => {
     fetchInitialData();
   }, [searchParams]);
 
+  // Fetch properties
   useEffect(() => {
     const fetchProperties = async () => {
       try {
         setLoading(true);
-        console.log("Fetching properties with status=approved...");
-        // Fetch only properties with status 'approved'
         const [
           maisonsResponse,
           appartementsResponse,
@@ -373,31 +427,17 @@ const AllProperties: React.FC = () => {
           fetchWithRetry("http://localhost:8000/api/etage-villas?status=approved"),
         ]);
 
-        // Log raw responses
-        console.log("Maisons Response:", maisonsResponse.data);
-        console.log("Appartements Response:", appartementsResponse.data);
-        console.log("Villas Response:", villasResponse.data);
-        console.log("Bureaux Response:", bureauxResponse.data);
-        console.log("Fermes Response:", fermesResponse.data);
-        console.log("Terrains Response:", terrainsResponse.data);
-        console.log("Etage Villas Response:", etageVillasResponse.data);
-
-        // Filter to ensure only approved properties
-        const approvedMaisons = maisonsResponse.data.filter((m: Maison) => m.status === 'approved');
-        const approvedAppartements = appartementsResponse.data.filter((a: Appartement) => a.status === 'approved');
-        const approvedVillas = villasResponse.data.filter((v: Villa) => v.status === 'approved');
-        const approvedBureaux = bureauxResponse.data.filter((b: Bureau) => b.status === 'approved');
-        const approvedFermes = fermesResponse.data.filter((f: Ferme) => f.status === 'approved');
-        const approvedTerrains = terrainsResponse.data.filter((t: Terrain) => t.status === 'approved');
-        const approvedEtageVillas = etageVillasResponse.data.filter((e: EtageVilla) => e.status === 'approved');
-
-        console.log("Approved Maisons:", approvedMaisons);
-        console.log("Approved Appartements:", approvedAppartements);
-        console.log("Approved Villas:", approvedVillas);
-        console.log("Approved Bureaux:", approvedBureaux);
-        console.log("Approved Fermes:", approvedFermes);
-        console.log("Approved Terrains:", approvedTerrains);
-        console.log("Approved Etage Villas:", approvedEtageVillas);
+        const approvedMaisons = maisonsResponse.data.filter((m: Maison) => m.status === "approved");
+        const approvedAppartements = appartementsResponse.data.filter(
+          (a: Appartement) => a.status === "approved",
+        );
+        const approvedVillas = villasResponse.data.filter((v: Villa) => v.status === "approved");
+        const approvedBureaux = bureauxResponse.data.filter((b: Bureau) => b.status === "approved");
+        const approvedFermes = fermesResponse.data.filter((f: Ferme) => f.status === "approved");
+        const approvedTerrains = terrainsResponse.data.filter((t: Terrain) => t.status === "approved");
+        const approvedEtageVillas = etageVillasResponse.data.filter(
+          (e: EtageVilla) => e.status === "approved",
+        );
 
         setMaisons(approvedMaisons);
         setAppartements(approvedAppartements);
@@ -407,13 +447,13 @@ const AllProperties: React.FC = () => {
         setTerrains(approvedTerrains);
         setEtageVillas(approvedEtageVillas);
         setError(null);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching properties:", error);
-        if (error.response?.status === 429) {
-          setError("Trop de requêtes. Veuillez réessayer dans quelques secondes.");
-        } else {
-          setError("Erreur lors du chargement des propriétés.");
-        }
+        setError(
+          error.response?.status === 429
+            ? "Trop de requêtes. Veuillez réessayer dans quelques secondes."
+            : "Erreur lors du chargement des propriétés.",
+        );
       } finally {
         setLoading(false);
       }
@@ -422,8 +462,8 @@ const AllProperties: React.FC = () => {
     fetchProperties();
   }, []);
 
+  // Filter properties based on filters state
   useEffect(() => {
-    // Combine properties
     const combinedProperties: Property[] = [
       ...maisons.map((maison) => ({
         id: maison.id,
@@ -539,8 +579,6 @@ const AllProperties: React.FC = () => {
       })),
     ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-    console.log("Combined Properties:", combinedProperties);
-
     const filteredProperties = combinedProperties.filter((property) => {
       const matchesType = !filters.type || property.typeTransaction === filters.type;
       const matchesCategorie = !filters.categorie || property.categorie === filters.categorie;
@@ -555,6 +593,12 @@ const AllProperties: React.FC = () => {
       const matchesSuperficie =
         (!filters.superficieMin || property.superficie >= Number(filters.superficieMin)) &&
         (!filters.superficieMax || property.superficie <= Number(filters.superficieMax));
+      const matchesChambres =
+        !filters.chambres ||
+        (property.type === "maison" &&
+          maisons.find((m) => m.id === property.id)?.nombre_chambres >= Number(filters.chambres)) ||
+        (property.type === "villa" &&
+          villas.find((v) => v.id === property.id)?.chambres >= Number(filters.chambres));
       const matchesPiscine =
         !filters.piscine ||
         (property.type === "villa" &&
@@ -563,14 +607,14 @@ const AllProperties: React.FC = () => {
         !filters.nombreBureaux ||
         (property.type === "bureau" &&
           (bureaux.find((b) => b.id === property.id)?.nombre_bureaux ?? 0) >=
-            (Number(filters.nombreBureaux) || 0));
+            Number(filters.nombreBureaux));
       const matchesInfrastructures =
         !filters.infrastructures ||
         (property.type === "ferme" &&
           fermes
             .find((f) => f.id === property.id)
             ?.infrastructures.some((infra) =>
-              infra.toLowerCase().includes(filters.infrastructures.toLowerCase())
+              infra.toLowerCase().includes(filters.infrastructures.toLowerCase()),
             ));
       const matchesPermisConstruction =
         !filters.permisConstruction ||
@@ -608,6 +652,7 @@ const AllProperties: React.FC = () => {
         matchesDelegation &&
         matchesPrix &&
         matchesSuperficie &&
+        matchesChambres &&
         matchesPiscine &&
         matchesNombreBureaux &&
         matchesInfrastructures &&
@@ -620,7 +665,6 @@ const AllProperties: React.FC = () => {
       );
     });
 
-    console.log("Filtered Properties:", filteredProperties);
     setProperties(filteredProperties);
     setCurrentPage(1);
   }, [maisons, appartements, villas, bureaux, fermes, terrains, etageVillas, filters]);
@@ -629,7 +673,7 @@ const AllProperties: React.FC = () => {
     try {
       const response = await fetchWithRetry(`http://localhost:8000/api/delegations/${villeId}`);
       setDelegations(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching delegations:", error);
       setDelegations([]);
     }
@@ -637,7 +681,11 @@ const AllProperties: React.FC = () => {
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "ville" && { delegation: "" }), // Reset delegation when ville changes
+    }));
 
     if (name === "ville") {
       const selectedVille = villes.find((v) => v.nom === value);
@@ -650,7 +698,41 @@ const AllProperties: React.FC = () => {
   };
 
   const handleSearch = () => {
-    // La recherche est gérée par le useEffect
+    const queryParams = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) {
+        queryParams.append(key, value);
+      }
+    });
+    navigate(`/all-properties?${queryParams.toString()}`);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      type: "",
+      categorie: "",
+      ville: "",
+      delegation: "",
+      chambres: "",
+      douches: "",
+      sallesEau: "",
+      suites: "",
+      prixMin: "",
+      prixMax: "",
+      superficieMin: "",
+      superficieMax: "",
+      piscine: "",
+      nombreBureaux: "",
+      infrastructures: "",
+      permisConstruction: "",
+      cloture: "",
+      surfaceConstructibleMin: "",
+      numeroEtage: "",
+      accesIndependant: "",
+      parkingInclus: "",
+    });
+    setDelegations([]);
+    navigate("/all-properties");
   };
 
   const getTypeColor = (type: string) => {
@@ -669,7 +751,6 @@ const AllProperties: React.FC = () => {
   const indexOfLastProperty = currentPage * propertiesPerPage;
   const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
   const currentProperties = properties.slice(indexOfFirstProperty, indexOfLastProperty);
-  console.log("Current Properties (for rendering):", currentProperties);
   const totalPages = Math.ceil(properties.length / propertiesPerPage);
 
   const paginate = (pageNumber: number) => {
@@ -693,9 +774,7 @@ const AllProperties: React.FC = () => {
         <h2>Erreur</h2>
         <p>{error}</p>
         {error.includes("Trop de requêtes") && (
-          <button onClick={() => window.location.reload()}>
-            Réessayer
-          </button>
+          <button onClick={() => window.location.reload()}>Réessayer</button>
         )}
       </div>
     );
@@ -708,19 +787,25 @@ const AllProperties: React.FC = () => {
         <select name="type" value={filters.type} onChange={handleFilterChange}>
           <option value="">Type de transaction</option>
           {types.map((type) => (
-            <option key={type.id} value={type.nom}>{type.nom}</option>
+            <option key={type.id} value={type.nom}>
+              {type.nom}
+            </option>
           ))}
         </select>
         <select name="categorie" value={filters.categorie} onChange={handleFilterChange}>
           <option value="">Catégorie</option>
           {categories.map((categorie) => (
-            <option key={categorie.id} value={categorie.nom}>{categorie.nom}</option>
+            <option key={categorie.id} value={categorie.nom}>
+              {categorie.nom}
+            </option>
           ))}
         </select>
         <select name="ville" value={filters.ville} onChange={handleFilterChange}>
           <option value="">Ville</option>
           {villes.map((ville) => (
-            <option key={ville.id} value={ville.nom}>{ville.nom}</option>
+            <option key={ville.id} value={ville.nom}>
+              {ville.nom}
+            </option>
           ))}
         </select>
         <select
@@ -731,7 +816,9 @@ const AllProperties: React.FC = () => {
         >
           <option value="">Délégation</option>
           {delegations.map((delegation) => (
-            <option key={delegation.id} value={delegation.nom}>{delegation.nom}</option>
+            <option key={delegation.id} value={delegation.nom}>
+              {delegation.nom}
+            </option>
           ))}
         </select>
         <input
@@ -764,11 +851,28 @@ const AllProperties: React.FC = () => {
         />
         <input
           type="number"
+          name="chambres"
+          value={filters.chambres}
+          onChange={handleFilterChange}
+          placeholder="Nombre de chambres"
+        />
+        <input
+          type="number"
           name="numeroEtage"
           value={filters.numeroEtage}
           onChange={handleFilterChange}
           placeholder="Numéro d'étage"
         />
+        <select name="piscine" value={filters.piscine} onChange={handleFilterChange}>
+          <option value="">Piscine</option>
+          <option value="true">Oui</option>
+          <option value="false">Non</option>
+        </select>
+        <select name="permisConstruction" value={filters.permisConstruction} onChange={handleFilterChange}>
+          <option value="">Permis de construction</option>
+          <option value="true">Oui</option>
+          <option value="false">Non</option>
+        </select>
         <select name="parkingInclus" value={filters.parkingInclus} onChange={handleFilterChange}>
           <option value="">Parking inclus</option>
           <option value="true">Oui</option>
@@ -776,6 +880,9 @@ const AllProperties: React.FC = () => {
         </select>
         <button onClick={handleSearch} className="bouton-recherche">
           <FaSearch /> RECHERCHER
+        </button>
+        <button onClick={handleResetFilters} className="bouton-reset">
+          <FaRedoAlt /> RÉINITIALISER
         </button>
       </div>
 
@@ -795,7 +902,10 @@ const AllProperties: React.FC = () => {
                     <img
                       src={property.images[0].url}
                       alt={property.titre}
-                      onError={() => console.error(`Image failed to load: ${property.images[0].url}`)}
+                      onError={(e) => {
+                        console.error(`Image failed to load: ${property.images[0].url}`);
+                        e.currentTarget.src = "/placeholder-image.jpg"; // Fallback image
+                      }}
                     />
                   ) : (
                     <div className="sans-image">Pas d'image</div>
@@ -813,7 +923,7 @@ const AllProperties: React.FC = () => {
                   <p className="adresse-propriete">
                     {property.adresse}, {property.delegation}, {property.ville}
                   </p>
-                  <p className="superficie-propriete">{property.superficie}m²</p>
+                  <p className="superficie-propriete">{property.superficie} m²</p>
                   <Link to={`/${property.type}/${property.id}`} className="bouton-voir">
                     Voir les détails
                   </Link>
@@ -829,11 +939,8 @@ const AllProperties: React.FC = () => {
 
         {totalPages > 1 && (
           <div className="pagination">
-            <button
-              onClick={() => paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-            >
-              Précédent
+            <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>
+              <FaChevronLeft />
             </button>
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -862,11 +969,8 @@ const AllProperties: React.FC = () => {
               <button onClick={() => paginate(totalPages)}>{totalPages}</button>
             )}
 
-            <button
-              onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === totalPages}
-            >
-              Suivant
+            <button onClick={() => paginate(currentPage + 1)} disabled={currentPage === totalPages}>
+              <FaChevronRight />
             </button>
           </div>
         )}

@@ -1133,86 +1133,7 @@ const DetailVilla = () => {
         <div className="ligne-separateur"></div>
       </div>
 
-      {/* Section Propriétés Similaires */}
-      <section className="section-proprietes-similaires">
-        <motion.div
-          className="entete-section"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-        >
-          <h2>Villas Similaires</h2>
-          <Link to="/villas" className="voir-tout">
-            Voir toutes <IoIosArrowForward />
-          </Link>
-        </motion.div>
-
-        <div className="conteneur-carrousel">
-          {showLeftArrow && (
-            <motion.button
-              className="fleche-carrousel gauche"
-              onClick={() => handleCarouselScroll("left")}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaArrowLeftIcon />
-            </motion.button>
-          )}
-          <div className="carrousel-proprietes" ref={carouselRef}>
-            {similarProperties.map((property, index) => (
-              <motion.div
-                key={property.id}
-                className="carte-propriete"
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                whileHover={{
-                  y: -10,
-                  rotateY: 5,
-                  rotateX: 5,
-                  boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
-                }}
-              >
-                <div className="image-propriete">
-                  <motion.img
-                    src={property.image}
-                    alt={property.titre}
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <span className="prix-propriete">{property.prix.toLocaleString()} TND</span>
-                </div>
-                <div className="details-propriete">
-                  <h3>{property.titre}</h3>
-                  <p className="localisation-propriete">
-                    <FaMapMarkerAlt /> {property.adresse}, {property.ville}
-                  </p>
-                  <div className="caracteristiques-propriete">
-                    <span>
-                      <FaRulerCombined /> {property.superficie}m²
-                    </span>
-                    <span>
-                      <FaBed /> {property.chambres} chambres
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          {showRightArrow && (
-            <motion.button
-              className="fleche-carrousel droite"
-              onClick={() => handleCarouselScroll("right")}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <FaArrowRight />
-            </motion.button>
-          )}
-        </div>
-      </section>
+  
 
       {/* Visionneuse Plein Écran */}
       <AnimatePresence>
@@ -1282,36 +1203,7 @@ const DetailVilla = () => {
         )}
       </AnimatePresence>
 
-      {/* Modal Visite Virtuelle */}
-      <AnimatePresence>
-        {showVirtualTour && (
-          <motion.div
-            className="modal-visite-virtuelle"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="contenu-modal"
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-            >
-              <motion.button
-                className="bouton-fermer"
-                onClick={() => setShowVirtualTour(false)}
-                whileHover={{ scale: 1.1, rotate: 90 }}
-              >
-                ×
-              </motion.button>
-              <h2>Visite Virtuelle</h2>
-              <div className="espace-visite">
-                <p>Visite virtuelle à venir (Placeholder)</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+   
 
       <Footer />
     </div>

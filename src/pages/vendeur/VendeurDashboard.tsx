@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FaUpload, FaListAlt, FaBed, FaExpand, FaMapMarkerAlt, FaFileAlt, FaDollarSign, FaCloudSun, FaImage, FaLayerGroup,
-  FaHome, FaBuilding, FaCity, FaStore, FaHotel, FaCalendarAlt,
-  FaKey, FaSwimmingPool, FaTree, FaClipboardList, FaSnowflake,
+  FaBuilding, FaCity, FaStore, FaHotel, FaCalendarAlt,
+   FaSwimmingPool, FaTree, FaClipboardList, FaSnowflake,
   FaParking, FaUsers, FaUtensils, FaShieldAlt, FaThLarge, FaMountain,
   FaNetworkWired, FaWifi, FaWater, FaTractor, FaCrow, FaBolt, FaRuler, FaExchangeAlt, FaTags, FaMapSigns, FaClipboard,
   FaDoorOpen, FaChessBoard, FaWarehouse,
@@ -1241,7 +1241,7 @@ const VendeurDashboard: React.FC = () => {
                 type="checkbox"
                 name="permisConstruction"
                 checked={formData.permisConstruction}
-                onChange={handleRalChange}
+                onChange={handleChange}
               />
             </div>
             <div className="property-form__field">
